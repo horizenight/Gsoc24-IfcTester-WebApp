@@ -901,13 +901,20 @@ class IDSLoader extends HTMLElement {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             let result = await response.json();
-            let parser = new DOMParser();
-            let xml = parser.parseFromString(result.xml, "text/xml")
-            let container = self.closest('ids-container')
-            container.ids = xml;
-            container.idsElement = xml;
-            window.xxx = xml; // TODO
-            self.loadSpecs(container);
+            if(result.is_valid){
+                let parser = new DOMParser();
+                let xml = parser.parseFromString(result.xml, "text/xml")
+                let container = self.closest('ids-container')
+                container.ids = xml;
+                container.idsElement = xml;
+                window.xxx = xml; // TODO
+                self.loadSpecs(container);
+            }
+            else{
+            // XML Schmeais not Valid 
+                throw new Error(`Ids is not Valid! XML Status: ${result.is_valid}`);
+            }
+            
 
         } catch (error) {
             console.error('Error:', error);
