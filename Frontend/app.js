@@ -867,6 +867,24 @@ class IDSSpec extends HTMLElement {
     }
 }
 
+class IDSAlert extends HTMLElement {
+    connectedCallback() {
+        this.classList.add('hidden');
+    }
+
+    showAlert(message, type) {
+        this.innerText = message;
+        this.className = ''; // Reset classes
+        this.classList.add(type); // Add either 'success' or 'error'
+         // Clear any existing icons
+    
+        setTimeout(() => {
+            this.classList.add('hidden');
+        }, 8000); // Hide after 8 seconds
+    }
+}
+
+
 class IDSLoader extends HTMLElement {
     connectedCallback() {
         var self = this;
@@ -886,6 +904,8 @@ class IDSLoader extends HTMLElement {
     async loadFile(e) {
         let self = this.idsLoader;
         let container = self.closest('ids-container')
+        let alertElement = container.querySelector('ids-alert');
+        let filename = this.files[0].name;
         container.filename = this.files[0].name;
         let file = this.files[0]
         console.log(file)
@@ -909,14 +929,17 @@ class IDSLoader extends HTMLElement {
                 container.idsElement = xml;
                 window.xxx = xml; // TODO
                 self.loadSpecs(container);
+                alertElement.showAlert('Upload successful', 'success');
+                
             }
             else{
             // XML Schmeais not Valid 
                 throw new Error(`Ids is not Valid! XML Status: ${result.is_valid}`);
             }
-            
-
         } catch (error) {
+            
+            console.log(container.parentElement)
+            alertElement.showAlert('Error: cannot upload ' + filename, 'error');
             console.error('Error:', error);
         }
        
@@ -999,6 +1022,7 @@ class IDSAudit extends HTMLElement {
 
 window.customElements.define('ids-new', IDSNew);
 window.customElements.define('ids-container', IDSContainer);
+window.customElements.define('ids-alert', IDSAlert);
 window.customElements.define('ids-loader', IDSLoader);
 window.customElements.define('ids-save', IDSSave);
 window.customElements.define('ids-close', IDSClose);

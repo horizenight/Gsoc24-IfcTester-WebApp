@@ -382,3 +382,30 @@ nav ids-spec {
     padding: 15px;
     display: block;
 }
+
+ids-alert {
+    position: fixed;
+    top: 30px;
+    right: 10px; 
+    z-index: 1000;
+    margin: 20px 0;
+    padding: 10px 30px;
+    border-radius: 3px;
+    background-color: #ffffff; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+ids-alert.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+ids-alert.success {
+    color: #270;
+    background-color: #DFF2BF;
+}
+
+ids-alert.error {
+    color: #D8000C;
+    background-color: #FFBABA;
+}
