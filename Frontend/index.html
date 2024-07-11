@@ -36,8 +36,11 @@
                 </span>
             </header>
             <template>
+                <div class="ids">
+
+                <div class="ids-document-container">
                 <ids-container>
-                    <div class="ids">
+                    <div class="ids-document">
                         <div style="position: relative;">
                             <ids-alert>
                                 <i data-feather="x-circle"></i>
@@ -201,6 +204,123 @@
                         </ids-specs>
                     </nav>
                 </ids-container>
+            </div>
+            <div class="ids-lib-container">
+                <ids-container>
+                    <div class="ids-document">
+                        <div style="position: relative;">
+                            <ids-alert>
+                                <i data-feather="x-circle"></i>
+                                <i data-feather="check-circle"></i>
+                            </ids-alert>
+                            <div class="ids-controls">
+                                <ids-lib-loader>
+                                    <a href="#">
+                                        <i data-feather="upload"></i> IMPORT YOUR OWN SPECIFCATIONS ( DRAG N DROP )
+                                    </a>
+                                </ids-lib-loader>
+                            </div>
+                            <ids-specs>
+                                <template>
+                                    <ids-spec>
+                                        <ids-spec-target></ids-spec-target>
+                                        <h2>
+                                            <a href="#"><i data-feather="play"></i></a>
+                                            <ids-spec-handle class="draggable" draggable="true">
+                                                <i data-feather="move"></i>
+                                                <div class="snippet hidden">Move specification</div>
+                                            </ids-spec-handle>
+                                            <ids-spec-remove>
+                                                <i data-feather="x"></i>
+                                            </ids-spec-remove>
+                                            <ids-spec-attribute name="name">Requirement name</ids-spec-attribute>
+                                        </h2>
+                                        <div class="spec-contents">
+                                            <p class="spec-description">
+                                                <ids-spec-attribute name="description">
+                                                    Describe why the requirement is important to the project.
+                                                </ids-spec-attribute>
+                                            </p>
+                                            <p>
+                                                <ids-spec-attribute name="instructions">
+                                                    Provide instructions on who is responsible and how to achieve it.
+                                                </ids-spec-attribute>
+                                            </p>
+                                            <h3>
+                                                <span class="controls">
+                                                    <ids-facet-add>
+                                                        <i data-feather="plus"></i>
+                                                    </ids-facet-add>
+                                                </span>
+                                                Applies to:
+                                            </h3>
+                                            <ids-facets name="applicability">
+                                                <template>
+                                                    <div class="facet">
+                                                        <span class="facet-controls">
+                                                            <ids-facet-remove>
+                                                                <i data-feather="x"></i>
+                                                            </ids-facet-remove>
+                                                        </span>
+                                                        <ids-facet type="applicability"></ids-facet>
+                                                    </div>
+                                                </template>
+                                            </ids-facets>
+                                            <h3>
+                                                <span class="controls">
+                                                    <ids-facet-add>
+                                                        <i data-feather="plus"></i>
+                                                    </ids-facet-add>
+                                                </span>
+                                                Requirements:
+                                            </h3>
+                                            <ids-facets name="requirements">
+                                                <template>
+                                                    <div class="facet">
+                                                        <span class="facet-controls">
+                                                            <ids-facet-remove>
+                                                                <i data-feather="x"></i>
+                                                            </ids-facet-remove>
+                                                        </span>
+                                                        <ids-result name="fail" class="result-icon hidden">
+                                                            <i data-feather="x"></i>
+                                                            <span>32</span>
+                                                        </ids-result>
+                                                        <ids-result name="pass" class="result-icon hidden">
+                                                            <i data-feather="check"></i>
+                                                        </ids-result>
+                                                        <ids-facet type="requirement"></ids-facet>
+                                                        <ids-facet-instructions class="requirement-instructions" title="Instructions">
+                                                            Optionally write instructions about how to achieve this requirement.
+                                                        </ids-facet-instructions>
+                                                    </div>
+                                                </template>
+                                            </ids-facets>
+                                        </div>
+                                        <div class="divider">
+                                            <span class="placeholder">
+                                                <i data-feather="align-justify"></i>
+                                            </span>
+                                            <span class="controls">
+                                                <ids-spec-add>
+                                                    <i data-feather="plus"></i>
+                                                </ids-spec-add>
+                                                <ids-spec-move direction="down">
+                                                    <i data-feather="chevron-down"></i>
+                                                </ids-spec-move>
+                                                <ids-spec-move direction="up">
+                                                <i data-feather="chevron-up"></i>
+                                                </ids-spec-move>
+                                            </span>
+                                        </div>
+                                    </ids-spec>
+                                </template>
+                            </ids-specs>
+                        </div>
+                    </div>
+                </ids-container>
+            </div>
+
             </template>
         </ifc-tester>
         <script src="https://unpkg.com/feather-icons"></script>

@@ -135,13 +135,13 @@ class IDSSpecMove extends HTMLElement {
     }
 
     load(idsElement) {
-        var self = this;
+        let self = this;
         this.idsElement = idsElement;
         this.render();
     }
 
     render() {
-        var index = Array.prototype.indexOf.call(this.idsElement.parentElement.children, this.idsElement);
+        let index = Array.prototype.indexOf.call(this.idsElement.parentElement.children, this.idsElement);
         if (index == 0 && this.direction == 'up') {
             this.classList.add('hidden');
         } else if (index == this.idsElement.parentElement.children.length - 1 && this.direction == 'down') {
@@ -190,22 +190,26 @@ class IDSSpecHandle extends HTMLElement {
     }
 
     dragstart(e) {
-        var snippet = this.getElementsByClassName('snippet')[0];
+        let snippet = this.getElementsByClassName('snippet')[0];
         snippet.style.left = e.clientX + 'px';
         snippet.style.top = e.clientY + 'px';
-        var dropzones = document.getElementsByTagName('ids-spec');
+        let dropzones = document.getElementsByTagName('ids-spec');
         for (var i = 0; i < dropzones.length; i++) {
             dropzones[i].classList.add('dropzone');
         }
         snippet.classList.remove('hidden');
         this.closest('ids-spec').style.opacity = '0.3';
+        this.closest('ids-spec').classList.add('dragging');
+
+        console.log('inside SpecHandle',this.closest('ids-spec'))
     }
 
     dragend(e) {
-        var snippet = this.getElementsByClassName('snippet')[0];
+        let snippet = this.getElementsByClassName('snippet')[0];
         snippet.classList.add('hidden');
         this.closest('ids-spec').style.opacity = '1';
-        var dropzones = document.getElementsByTagName('ids-spec');
+        this.closest('ids-spec').classList.remove('dragging');
+        let dropzones = document.getElementsByTagName('ids-spec');
         for (var i = 0; i < dropzones.length; i++) {
             dropzones[i].classList.remove('dropzone');
             dropzones[i].classList.remove('dragover');
@@ -816,11 +820,14 @@ class IDSSpec extends HTMLElement {
         this.addEventListener('dragenter', this.dragenter);
         this.addEventListener('dragover', this.dragover);
         this.addEventListener('drop', this.drop);
+
+        this.setAttribute("draggable","true");
     }
+    
 
     dragenter(e) {
         if (e.target.classList.contains('dropzone')) {
-            var dropzones = document.getElementsByTagName('ids-spec');
+            let dropzones = document.getElementsByTagName('ids-spec');
             for (var i = 0; i < dropzones.length; i++) {
                 dropzones[i].classList.remove('dragover');
             }
@@ -828,34 +835,6 @@ class IDSSpec extends HTMLElement {
         }
     }
 
-    load(idsElement) {
-        var self = this;
-        this.idsElement = idsElement;
-
-        var children = this.getElementsByTagName('ids-spec-attribute');
-        for (var i = 0; i < children.length; i++) {
-            children[i].load(idsElement);
-        }
-
-        var children = this.getElementsByTagName('ids-facets');
-        for (var i = 0; i < children.length; i++) {
-            children[i].load(idsElement.getElementsByTagNameNS(ns, children[i].attributes['name'].value)[0]);
-        }
-
-        var children = this.getElementsByTagName('ids-spec-move');
-        for (var i = 0; i < children.length; i++) {
-            children[i].load(idsElement);
-        }
-    }
-
-    showResults(specification) {
-        var facetsElements = this.getElementsByTagName('ids-facets');
-        for (var i = 0; i < facetsElements.length; i++) {
-            if (facetsElements[i].attributes['name'].value == "requirements") {
-                facetsElements[i].showResults(specification.requirements);
-            }
-        }
-    }
 
     dragover(e) {
         // The HTML draggable API is terrible.
@@ -863,7 +842,51 @@ class IDSSpec extends HTMLElement {
     }
 
     drop(e) {
-        e.preventDefault();
+        let targetElement = this;
+        let draggedElement = document.getElementsByClassName('dragging')[0];
+
+        swap(draggedElement,targetElement)
+        
+
+        function swap(nodeA, nodeB) {
+            const parentA = nodeA.parentNode;
+            const siblingA = nodeA.nextSibling === nodeB ? nodeA : nodeA.nextSibling;
+        
+            // Move `nodeA` to before the `nodeB`
+            nodeB.parentNode.insertBefore(nodeA, nodeB);
+        
+            // Move `nodeB` to before the sibling of `nodeA`
+            parentA.insertBefore(nodeB, siblingA);
+        };
+    }
+
+    load(idsElement) {
+        let self = this;
+        this.idsElement = idsElement;
+
+        let children = this.getElementsByTagName('ids-spec-attribute');
+        for (let i = 0; i < children.length; i++) {
+            children[i].load(idsElement);
+        }
+
+        children = this.getElementsByTagName('ids-facets');
+        for (let i = 0; i < children.length; i++) {
+            children[i].load(idsElement.getElementsByTagNameNS(ns, children[i].attributes['name'].value)[0]);
+        }
+
+        children = this.getElementsByTagName('ids-spec-move');
+        for (let i = 0; i < children.length; i++) {
+            children[i].load(idsElement);
+        }
+    }
+
+    showResults(specification) {
+        let facetsElements = this.getElementsByTagName('ids-facets');
+        for (let i = 0; i < facetsElements.length; i++) {
+            if (facetsElements[i].attributes['name'].value == "requirements") {
+                facetsElements[i].showResults(specification.requirements);
+            }
+        }
     }
 }
 
@@ -884,6 +907,71 @@ class IDSAlert extends HTMLElement {
     }
 }
 
+
+class IDSLibLoader extends HTMLElement{
+    connectedCallback(){
+        let self = this;
+        this.addEventListener('click',this.launchFileBrowser);
+    }
+
+    launchFileBrowser(accept,callback){
+        let inputElement = document.createElement("input");
+        inputElement.idsLibraryLoader = this;
+        inputElement.type = "file";
+        inputElement.accept = '.ids,.xml';
+        inputElement.multiple = false;
+        inputElement.addEventListener("change", this.loadFile)
+        inputElement.dispatchEvent(new MouseEvent("click"));
+    }
+
+    async loadFile(e){
+        let self = this.idsLibraryLoader
+        let container = self.closest('ids-container');
+        let alertElement = container.querySelector('ids-alert');
+        let filename = this.files[0].name;
+        container.filename = this.files[0].name;
+        let file = this.files[0]
+        console.log(file)
+        let formData = new FormData();
+        formData.append('ids_file', file);
+        try {
+            let response = await fetch('http://127.0.0.1:8000/api/ids/loadIds', {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            let result = await response.json();
+            if(result.is_valid){
+                let parser = new DOMParser();
+                let xml = parser.parseFromString(result.xml, "text/xml")
+                let container = self.closest('ids-container')
+                container.ids = xml;
+                container.idsElement = xml;
+                window.xxx = xml; // TODO
+                alertElement.showAlert('Upload successful', 'success');
+                self.loadSpecs(container);
+                
+            }
+            else{
+            // XML Schmeais not Valid 
+                throw new Error(`Ids is not Valid! XML Status: ${result.is_valid}`);
+            }
+        } catch (error) {
+            alertElement.showAlert('Error: cannot upload ' + filename, 'error');
+            console.error('Error:', error);
+        }
+    }
+
+    loadSpecs(container) {
+        let specsElements = container.getElementsByTagName('ids-specs');
+        for (let i = 0; i < specsElements.length; i++) {
+            let specs = specsElements[i];
+            specs.load(container.ids.getElementsByTagNameNS(ns, 'specifications')[0]);
+        }
+    }
+}
 
 class IDSLoader extends HTMLElement {
     connectedCallback() {
@@ -1024,6 +1112,7 @@ window.customElements.define('ids-new', IDSNew);
 window.customElements.define('ids-container', IDSContainer);
 window.customElements.define('ids-alert', IDSAlert);
 window.customElements.define('ids-loader', IDSLoader);
+window.customElements.define('ids-lib-loader', IDSLibLoader);
 window.customElements.define('ids-save', IDSSave);
 window.customElements.define('ids-close', IDSClose);
 window.customElements.define('ids-audit', IDSAudit);
