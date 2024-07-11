@@ -28,11 +28,17 @@ def transform(data):
         "specifications": specifications.get('specification', [])
     }
     return transformed_data
+
+
+
     
 @router.post("/loadIds")
 async def audit(ids_file: UploadFile = File(...)):
     tmp_file_path = None
     output_file_path = None
+
+    if not ids_file.filename.endswith(".ids"):
+        raise HTTPException(status_code=400, detail="Invalid file extension. Only .ids files are allowed.")
 
     try:
         # Create a temporary file for the IDS file
@@ -47,7 +53,6 @@ async def audit(ids_file: UploadFile = File(...)):
         # Create a temporary file for the XML output
         with tempfile.NamedTemporaryFile(delete=False, suffix=".xml") as output_file:
             output_file_path = output_file.name
-            # write the xml 
             is_valid = ids_data.to_xml(output_file_path)
 
         # Read the XML content from the temporary file
@@ -55,9 +60,7 @@ async def audit(ids_file: UploadFile = File(...)):
             output_xml_content = xml_file.read()
 
     except Exception as e:
-        # If an exception occurs, return empty XML and is_valid as False
-        output_xml_content = ""
-        is_valid = False
+        raise HTTPException(status_code=400, detail="Invalid .ids file cannot be loaded")
 
     finally:
         # Clean up temporary files if they exist
