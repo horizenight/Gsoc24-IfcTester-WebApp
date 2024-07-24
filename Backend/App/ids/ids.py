@@ -1,4 +1,5 @@
 import os
+import time
 import tempfile
 import uuid
 from fastapi import APIRouter, HTTPException, UploadFile, File
@@ -7,33 +8,9 @@ import ifctester.reporter
 import ifcopenshell
 
 router = APIRouter(prefix="/api/ids")
-
-
-def transform(data):
-    info = data.get('info', {})
-    specifications = data.get('specifications', {})
-
-    transformed_data = {
-        "info": {
-            "title": info.get('title'),
-            "identifier": str(uuid.uuid4()),
-            "copyright": info.get('copyright'),
-            "version": info.get('version'),
-            "description": info.get('description'),
-            "author": info.get('author'),
-            "date": info.get('date'),
-            "purpose": info.get('purpose'),
-            "milestone": info.get('milestone'),
-        },
-        "specifications": specifications.get('specification', [])
-    }
-    return transformed_data
-
-
-
-    
+  
 @router.post("/loadIds")
-async def audit(ids_file: UploadFile = File(...)):
+async def loadIds(ids_file: UploadFile = File(...)):
     tmp_file_path = None
     output_file_path = None
 
@@ -74,3 +51,39 @@ async def audit(ids_file: UploadFile = File(...)):
         "xml": output_xml_content,
         "is_valid": is_valid
     }
+
+
+@router.post("/auditIds")
+async def auditIds(ids_file: UploadFile = File(...), ifc_file: UploadFile = File(...)):
+    ids_temp = tempfile.NamedTemporaryFile(delete=False)
+    ifc_temp = tempfile.NamedTemporaryFile(delete=False)
+
+    try:
+        ids_temp.write(await ids_file.read())
+        ifc_temp.write(await ifc_file.read())
+
+        ids_temp.close()
+        ifc_temp.close()
+
+        start = time.time()
+        ids_data = ifctester.ids.open(ids_temp.name)
+        ifc_data = ifcopenshell.open(ifc_temp.name)
+        print("Finished loading:", time.time() - start)
+        start = time.time()
+        ids_data.validate(ifc_data)
+        print("Finished validating:", time.time() - start)
+
+        start = time.time()
+        engine = ifctester.reporter.Json(ids_data)
+        engine.report()
+        ifctester.reporter.Console(ids_data).report()
+   
+        print("Finished reporting:", time.time() - start)
+        return {
+            "output": engine.to_string()
+        }
+    
+    finally:
+        os.remove(ids_temp.name)
+        os.remove(ifc_temp.name)
+
