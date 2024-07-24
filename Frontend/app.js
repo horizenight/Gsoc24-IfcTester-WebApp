@@ -25,7 +25,7 @@ class IDSClose extends HTMLElement {
     }
 
     click(e) {
-        var container = this.closest('ids-container');
+        let container = this.closest('ids-container');
         container.parentElement.removeChild(container);
     }
 }
@@ -42,9 +42,9 @@ class IDSContainer extends HTMLElement {
 class IDSInfo extends HTMLElement {
     load(idsElement) {
         this.idsElement = idsElement;
-        var idsInfoElements = this.getElementsByTagName('ids-info-element');
-        for (var i = 0; i < idsInfoElements.length; i++) {
-            var name = idsInfoElements[i].attributes['name'].value;
+        let idsInfoElements = this.getElementsByTagName('ids-info-element');
+        for (let i = 0; i < idsInfoElements.length; i++) {
+            let name = idsInfoElements[i].attributes['name'].value;
             idsInfoElements[i].load(idsElement, idsElement.getElementsByTagNameNS(ns, name)[0]);
         }
     }
@@ -310,36 +310,36 @@ class IDSSpecAttribute extends HTMLElement {
 
 class IDSFacets extends HTMLElement {
     load(idsElement) {
-        var self = this;
+        let self = this;
         this.idsElement = idsElement;
         this.idsElement.addEventListener('ids-facet-remove', function () { self.render(); });
         this.render();
     }
 
     render() {
-        var template = this.getElementsByTagName('template')[0];
+        let template = this.getElementsByTagName('template')[0];
 
-        var children = [];
-        for (var i = 0; i < this.children.length; i++) {
+        let children = [];
+        for (let i = 0; i < this.children.length; i++) {
             if (this.children[i] != template) {
                 children.push(this.children[i]);
             }
         }
 
-        for (var i = 0; i < children.length; i++) {
+        for (let i = 0; i < children.length; i++) {
             this.removeChild(children[i]);
         }
 
-        var facets = this.idsElement.children;
-        for (var i = 0; i < facets.length; i++) {
+        let facets = this.idsElement.children;
+        for (let i = 0; i < facets.length; i++) {
             this.appendChild(template.content.cloneNode(true));
-            var facet = this.children[this.children.length - 1];
-            var facetElements = facet.getElementsByTagName('ids-facet');
-            for (var j = 0; j < facetElements.length; j++) {
+            let facet = this.children[this.children.length - 1];
+            let facetElements = facet.getElementsByTagName('ids-facet');
+            for (let j = 0; j < facetElements.length; j++) {
                 facetElements[j].load(facets[i]);
             }
-            var facetInstructionsElements = facet.getElementsByTagName('ids-facet-instructions');
-            for (var j = 0; j < facetInstructionsElements.length; j++) {
+            let facetInstructionsElements = facet.getElementsByTagName('ids-facet-instructions');
+            for (let j = 0; j < facetInstructionsElements.length; j++) {
                 facetInstructionsElements[j].load(facets[i]);
             }
         }
@@ -347,8 +347,8 @@ class IDSFacets extends HTMLElement {
     }
 
     showResults(requirements) {
-        var facetElements = this.getElementsByTagName('ids-facet');
-        for (var i = 0; i < facetElements.length; i++) {
+        let facetElements = this.getElementsByTagName('ids-facet');
+        for (let i = 0; i < facetElements.length; i++) {
             facetElements[i].showResults(requirements[i]);
         }
     }
@@ -975,12 +975,12 @@ class IDSLibLoader extends HTMLElement{
 
 class IDSLoader extends HTMLElement {
     connectedCallback() {
-        var self = this;
+        let self = this;
         this.addEventListener('click', this.launchFileBrowser);
     }
 
     launchFileBrowser(accept, callback) {
-        var inputElement = document.createElement("input");
+        let inputElement = document.createElement("input");
         inputElement.idsLoader = this;
         inputElement.type = "file";
         inputElement.accept = '.ids,.xml';
@@ -1026,7 +1026,6 @@ class IDSLoader extends HTMLElement {
             }
         } catch (error) {
             
-            console.log(container.parentElement)
             alertElement.showAlert('Error: cannot upload ' + filename, 'error');
             console.error('Error:', error);
         }
@@ -1049,13 +1048,13 @@ class IDSSave extends HTMLElement {
     }
 
     click() {
-        var container = this.closest('ids-container')
-        var xmlString = new XMLSerializer().serializeToString(container.ids);
+        let container = this.closest('ids-container')
+        let xmlString = new XMLSerializer().serializeToString(container.ids);
         this.download(container.filename, xmlString);
     }
 
     download(filename, text) {
-        var element = document.createElement('a');
+        let element = document.createElement('a');
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
         element.setAttribute('download', filename);
         element.style.display = 'none';
@@ -1068,41 +1067,52 @@ class IDSSave extends HTMLElement {
 
 class IDSAudit extends HTMLElement {
     connectedCallback() {
-        this.addEventListener('click', this.launchFileBrowser);
+        this.addEventListener('click', this.launchFileBrowser.bind(this));
     }
 
-    launchFileBrowser(accept, callback) {
-        var inputElement = document.createElement("input");
+    launchFileBrowser() {
+        let inputElement = document.createElement("input");
         inputElement.idsAudit = this;
         inputElement.type = "file";
         inputElement.accept = '.ifc';
         inputElement.multiple = false;
-        inputElement.addEventListener("change", this.loadFile)
+        inputElement.addEventListener("change", this.loadFile.bind(this));
         inputElement.dispatchEvent(new MouseEvent("click"));
     }
 
-    loadFile(e) {
-        var self = this.idsAudit;
-        var container = self.closest('ids-container');
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function () { self.processResponse(request); };
-        request.open("POST", "audit");
-        var data = new FormData();
-        data.append('ifc', this.files[0]);
-        data.append('ids', new Blob([new XMLSerializer().serializeToString(container.ids)], { type: 'text/plain' }));
+    loadFile(event) {
+        let self = this;
+        let inputElement = event.target;
+        let container = this.closest('ids-container');
+        
+        let request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4) {
+                self.processResponse(request);
+            }
+        };
+        request.open("POST", "http://127.0.0.1:8000/api/ids/auditIds");
+
+        let data = new FormData();
+        data.append('ifc_file', inputElement.files[0]);
+        data.append('ids_file', new Blob([new XMLSerializer().serializeToString(container.ids)], {type: 'application/xml'}));
         request.send(data);
     }
 
     processResponse(request) {
         if (request.readyState != 4) {
             return;
-        }
-        var container = this.closest('ids-container');
+        }  
+        let container = this.closest('ids-container');
         container.isEditing = false;
-        var results = JSON.parse(request.responseText);
-        var specsElements = container.getElementsByTagName('ids-specs');
-        for (var i = 0; i < specsElements.length; i++) {
-            var specs = specsElements[i];
+        
+        let results = JSON.parse(request.responseText);
+        results = JSON.parse(results.content)
+        let specsElements = container.getElementsByTagName('ids-specs');
+        console.log('results', results.specifications)
+        
+        for (let i = 0; i < specsElements.length; i++) {
+            let specs = specsElements[i];
             specs.showResults(results.specifications);
         }
     }
