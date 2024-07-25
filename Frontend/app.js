@@ -256,7 +256,7 @@ class IDSSpecAttribute extends HTMLElement {
     }
 
     load(idsElement) {
-        var self = this;
+        let self = this;
         this.idsElement = idsElement;
         this.idsElement.addEventListener('ids-spec-attribute-' + this.name, function () { self.render(); });
         this.render();
@@ -1000,6 +1000,10 @@ class IDSLoader extends HTMLElement {
         let alertElement = container.querySelector('ids-alert');
         let filename = this.files[0].name;
         container.filename = this.files[0].name;
+
+        let idsFilename = container.querySelector('ids-filename')
+        idsFilename.innerHTML = filename
+
         let file = this.files[0]
         console.log(file)
         let formData = new FormData();
