@@ -194,7 +194,7 @@ class IDSSpecHandle extends HTMLElement {
         snippet.style.left = e.clientX + 'px';
         snippet.style.top = e.clientY + 'px';
         let dropzones = document.getElementsByTagName('ids-spec');
-        for (var i = 0; i < dropzones.length; i++) {
+        for (let i = 0; i < dropzones.length; i++) {
             dropzones[i].classList.add('dropzone');
         }
         snippet.classList.remove('hidden');
@@ -210,7 +210,7 @@ class IDSSpecHandle extends HTMLElement {
         this.closest('ids-spec').style.opacity = '1';
         this.closest('ids-spec').classList.remove('dragging');
         let dropzones = document.getElementsByTagName('ids-spec');
-        for (var i = 0; i < dropzones.length; i++) {
+        for (let i = 0; i < dropzones.length; i++) {
             dropzones[i].classList.remove('dropzone');
             dropzones[i].classList.remove('dragover');
         }
@@ -219,28 +219,28 @@ class IDSSpecHandle extends HTMLElement {
 
 class IDSSpecCounter extends HTMLElement {
     connectedCallback() {
-        var spec = this.closest('ids-spec');
-        var index = Array.prototype.indexOf.call(spec.parentElement.children, spec);
+        let spec = this.closest('ids-spec');
+        let index = Array.prototype.indexOf.call(spec.parentElement.children, spec);
         this.textContent = index;
     }
 }
 
 class IDSSpecAnchor extends HTMLElement {
     connectedCallback() {
-        var spec = this.closest('ids-spec');
-        var index = Array.prototype.indexOf.call(spec.parentElement.children, spec);
-        var container = this.closest('ids-container');
-        var a = this.getElementsByTagName('a')[0];
+        let spec = this.closest('ids-spec');
+        let index = Array.prototype.indexOf.call(spec.parentElement.children, spec);
+        let container = this.closest('ids-container');
+        let a = this.getElementsByTagName('a')[0];
         a.setAttribute('href', '#' + container.containerId + '-' + index);
     }
 }
 
 class IDSSpecTarget extends HTMLElement {
     connectedCallback() {
-        var spec = this.closest('ids-spec');
-        var index = Array.prototype.indexOf.call(spec.parentElement.children, spec);
-        var container = this.closest('ids-container');
-        var a = document.createElement("a");
+        let spec = this.closest('ids-spec');
+        let index = Array.prototype.indexOf.call(spec.parentElement.children, spec);
+        let container = this.closest('ids-container');
+        let a = document.createElement("a");
         a.setAttribute('id', container.containerId + '-' + index);
         this.appendChild(a);
     }
@@ -776,7 +776,7 @@ class IDSParam extends HTMLElement {
 
 class IDSSpecs extends HTMLElement {
     load(idsElement) {
-        var self = this;
+        let self = this;
         this.idsElement = idsElement;
         this.idsElement.addEventListener('ids-spec-remove', function () { self.render(); });
         this.idsElement.addEventListener('ids-spec-add', function () { self.render(); });
@@ -785,31 +785,31 @@ class IDSSpecs extends HTMLElement {
     }
 
     render() {
-        var template = this.getElementsByTagName('template')[0];
+        let template = this.getElementsByTagName('template')[0];
 
-        var children = [];
-        for (var i = 0; i < this.children.length; i++) {
+        let children = [];
+        for (let i = 0; i < this.children.length; i++) {
             if (this.children[i] != template) {
                 children.push(this.children[i]);
             }
         }
 
-        for (var i = 0; i < children.length; i++) {
+        for (let i = 0; i < children.length; i++) {
             this.removeChild(children[i]);
         }
 
-        var idsSpecs = this.idsElement.getElementsByTagNameNS(ns, 'specification');
-        for (var i = 0; i < idsSpecs.length; i++) {
+        let idsSpecs = this.idsElement.getElementsByTagNameNS(ns, 'specification');
+        for (let i = 0; i < idsSpecs.length; i++) {
             this.appendChild(template.content.cloneNode(true));
-            var spec = this.children[this.children.length - 1];
+            let spec = this.children[this.children.length - 1];
             spec.load(idsSpecs[i]);
         }
         feather.replace();
     }
 
     showResults(specifications) {
-        var specElements = this.getElementsByTagName('ids-spec');
-        for (var i = 0; i < specElements.length; i++) {
+        let specElements = this.getElementsByTagName('ids-spec');
+        for (let i = 0; i < specElements.length; i++) {
             specElements[i].showResults(specifications[i]);
         }
     }
@@ -1034,9 +1034,9 @@ class IDSLoader extends HTMLElement {
 
     loadSpecs(container) {
         container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
-        var specsElements = container.getElementsByTagName('ids-specs');
-        for (var i = 0; i < specsElements.length; i++) {
-            var specs = specsElements[i];
+        let specsElements = container.getElementsByTagName('ids-specs');
+        for (let i = 0; i < specsElements.length; i++) {
+            let specs = specsElements[i];
             specs.load(container.ids.getElementsByTagNameNS(ns, 'specifications')[0]);
         }
     }
