@@ -168,13 +168,13 @@ class IDSSpecAdd extends HTMLElement {
     }
 
     click(e) {
-        var specs = this.closest('ids-specs');
-        var spec = this.closest('ids-spec');
+        let specs = this.closest('ids-specs');
+        let spec = this.closest('ids-spec');
 
-        var container = this.closest('ids-container');
-        var newSpec = container.ids.createElementNS(ns, "specification");
-        var newApplicability = container.ids.createElementNS(ns, "applicability");
-        var newRequirements = container.ids.createElementNS(ns, "requirements");
+        let container = this.closest('ids-container');
+        let newSpec = container.ids.createElementNS(ns, "specification");
+        let newApplicability = container.ids.createElementNS(ns, "applicability");
+        let newRequirements = container.ids.createElementNS(ns, "requirements");
 
         specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
         newSpec.appendChild(newApplicability);
@@ -200,8 +200,6 @@ class IDSSpecHandle extends HTMLElement {
         snippet.classList.remove('hidden');
         this.closest('ids-spec').style.opacity = '0.3';
         this.closest('ids-spec').classList.add('dragging');
-
-        console.log('inside SpecHandle',this.closest('ids-spec'))
     }
 
     dragend(e) {
@@ -821,20 +819,18 @@ class IDSSpec extends HTMLElement {
         this.addEventListener('dragover', this.dragover);
         this.addEventListener('drop', this.drop);
 
-        this.setAttribute("draggable","true");
+        this.setAttribute("draggable", "true");
     }
-    
 
     dragenter(e) {
         if (e.target.classList.contains('dropzone')) {
             let dropzones = document.getElementsByTagName('ids-spec');
-            for (var i = 0; i < dropzones.length; i++) {
+            for (let i = 0; i < dropzones.length; i++) {
                 dropzones[i].classList.remove('dragover');
             }
             e.target.classList.add('dragover');
         }
     }
-
 
     dragover(e) {
         // The HTML draggable API is terrible.
@@ -844,20 +840,31 @@ class IDSSpec extends HTMLElement {
     drop(e) {
         let targetElement = this;
         let draggedElement = document.getElementsByClassName('dragging')[0];
+        let targetSpecsElement = this.closest('ids-specs')
+        let draggedSpecsElement = draggedElement.closest('ids-specs')
+        if (targetSpecsElement === draggedSpecsElement) {
+            console.log('same')
+            if (draggedElement && targetElement && draggedElement !== targetElement && targetSpecsElement && targetSpecsElement.idsElement) {
+                let specifications = targetSpecsElement.idsElement.getElementsByTagNameNS(ns, 'specification');
+                let draggedIndex = Array.from(specifications).indexOf(draggedElement.idsElement);
+                let targetIndex = Array.from(specifications).indexOf(targetElement.idsElement);
 
-        swap(draggedElement,targetElement)
-        
+                if (draggedIndex > -1 && targetIndex > -1) {
+                    // Swap the elements in the idsElement
+                    let temp = specifications[draggedIndex];
+                    targetSpecsElement.idsElement.insertBefore(temp, specifications[targetIndex]);
+                    targetSpecsElement.idsElement.insertBefore(specifications[targetIndex], specifications[draggedIndex]);
+                    targetSpecsElement.render();
+                }
+            }
+        }
+        else {
+            targetSpecsElement.idsElement.insertBefore(draggedElement.idsElement, targetElement.idsElement);
+            targetSpecsElement.render();
+            draggedSpecsElement.render();
+        }
 
-        function swap(nodeA, nodeB) {
-            const parentA = nodeA.parentNode;
-            const siblingA = nodeA.nextSibling === nodeB ? nodeA : nodeA.nextSibling;
-        
-            // Move `nodeA` to before the `nodeB`
-            nodeB.parentNode.insertBefore(nodeA, nodeB);
-        
-            // Move `nodeB` to before the sibling of `nodeA`
-            parentA.insertBefore(nodeB, siblingA);
-        };
+
     }
 
     load(idsElement) {
@@ -899,8 +906,6 @@ class IDSAlert extends HTMLElement {
         this.innerText = message;
         this.className = ''; // Reset classes
         this.classList.add(type); // Add either 'success' or 'error'
-         // Clear any existing icons
-    
         setTimeout(() => {
             this.classList.add('hidden');
         }, 8000); // Hide after 8 seconds
@@ -908,13 +913,13 @@ class IDSAlert extends HTMLElement {
 }
 
 
-class IDSLibLoader extends HTMLElement{
-    connectedCallback(){
+class IDSLibLoader extends HTMLElement {
+    connectedCallback() {
         let self = this;
-        this.addEventListener('click',this.launchFileBrowser);
+        this.addEventListener('click', this.launchFileBrowser);
     }
 
-    launchFileBrowser(accept,callback){
+    launchFileBrowser(accept, callback) {
         let inputElement = document.createElement("input");
         inputElement.idsLibraryLoader = this;
         inputElement.type = "file";
@@ -924,7 +929,7 @@ class IDSLibLoader extends HTMLElement{
         inputElement.dispatchEvent(new MouseEvent("click"));
     }
 
-    async loadFile(e){
+    async loadFile(e) {
         let self = this.idsLibraryLoader
         let container = self.closest('ids-container');
         let alertElement = container.querySelector('ids-alert');
@@ -943,7 +948,7 @@ class IDSLibLoader extends HTMLElement{
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             let result = await response.json();
-            if(result.is_valid){
+            if (result.is_valid) {
                 let parser = new DOMParser();
                 let xml = parser.parseFromString(result.xml, "text/xml")
                 let container = self.closest('ids-container')
@@ -952,10 +957,10 @@ class IDSLibLoader extends HTMLElement{
                 window.xxx = xml; // TODO
                 alertElement.showAlert('Upload successful', 'success');
                 self.loadSpecs(container);
-                
+
             }
-            else{
-            // XML Schmeais not Valid 
+            else {
+                // XML Schmeais not Valid 
                 throw new Error(`Ids is not Valid! XML Status: ${result.is_valid}`);
             }
         } catch (error) {
@@ -1009,7 +1014,7 @@ class IDSLoader extends HTMLElement {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             let result = await response.json();
-            if(result.is_valid){
+            if (result.is_valid) {
                 let parser = new DOMParser();
                 let xml = parser.parseFromString(result.xml, "text/xml")
                 let container = self.closest('ids-container')
@@ -1018,18 +1023,18 @@ class IDSLoader extends HTMLElement {
                 window.xxx = xml; // TODO
                 self.loadSpecs(container);
                 alertElement.showAlert('Upload successful', 'success');
-                
+
             }
-            else{
-            // XML Schmeais not Valid 
+            else {
+                // XML Schmeais not Valid 
                 throw new Error(`Ids is not Valid! XML Status: ${result.is_valid}`);
             }
         } catch (error) {
-            
+
             alertElement.showAlert('Error: cannot upload ' + filename, 'error');
             console.error('Error:', error);
         }
-       
+
     }
 
     loadSpecs(container) {
@@ -1084,9 +1089,9 @@ class IDSAudit extends HTMLElement {
         let self = this;
         let inputElement = event.target;
         let container = this.closest('ids-container');
-        
+
         let request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
+        request.onreadystatechange = function () {
             if (request.readyState == 4) {
                 self.processResponse(request);
             }
@@ -1095,22 +1100,22 @@ class IDSAudit extends HTMLElement {
 
         let data = new FormData();
         data.append('ifc_file', inputElement.files[0]);
-        data.append('ids_file', new Blob([new XMLSerializer().serializeToString(container.ids)], {type: 'application/xml'}));
+        data.append('ids_file', new Blob([new XMLSerializer().serializeToString(container.ids)], { type: 'application/xml' }));
         request.send(data);
     }
 
     processResponse(request) {
         if (request.readyState != 4) {
             return;
-        }  
+        }
         let container = this.closest('ids-container');
         container.isEditing = false;
-        
+
         let results = JSON.parse(request.responseText);
         results = JSON.parse(results.content)
         let specsElements = container.getElementsByTagName('ids-specs');
         console.log('results', results.specifications)
-        
+
         for (let i = 0; i < specsElements.length; i++) {
             let specs = specsElements[i];
             specs.showResults(results.specifications);
