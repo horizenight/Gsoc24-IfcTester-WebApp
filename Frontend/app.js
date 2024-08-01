@@ -121,8 +121,8 @@ class IDSSpecRemove extends HTMLElement {
     }
 
     click(e) {
-        var specs = this.closest('ids-specs');
-        var spec = this.closest('ids-spec');
+        let specs = this.closest('ids-specs');
+        let spec = this.closest('ids-spec');
         specs.idsElement.removeChild(spec.idsElement);
         specs.idsElement.dispatchEvent(new Event('ids-spec-remove'));
     }
@@ -175,6 +175,7 @@ class IDSSpecAdd extends HTMLElement {
         let newSpec = container.ids.createElementNS(ns, "specification");
         let newApplicability = container.ids.createElementNS(ns, "applicability");
         let newRequirements = container.ids.createElementNS(ns, "requirements");
+        
 
         specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
         newSpec.appendChild(newApplicability);
@@ -309,6 +310,7 @@ class IDSSpecAttribute extends HTMLElement {
 class IDSFacets extends HTMLElement {
     load(idsElement) {
         let self = this;
+        console.log(idsElement)
         this.idsElement = idsElement;
         this.idsElement.addEventListener('ids-facet-remove', function () { self.render(); });
         this.render();
@@ -411,8 +413,33 @@ class IDSFacetRemove extends HTMLElement {
     }
 }
 
+class IDSFacetAdd extends HTMLElement{
+    connectedCallback() {
+        this.addEventListener('click', this.click);
+    }
+
+   click(e){
+        let specs = this.closest('ids-specs')
+        let facets = this.closest('h3').nextElementSibling;
+        
+        // this logic can be abstracted to 
+        let container = this.closest('ids-container');
+        let entity = container.ids.createElementNS(ns,'entity')
+        let name = container.ids.createElementNS(ns,'name')
+        let simpleValue = container.ids.createElementNS(ns,'simpleValue')
+        simpleValue.textContent = 'IfcWall';
+        name.appendChild(simpleValue);
+        entity.appendChild(name);
+        facets.idsElement.append(entity)
+
+        // renders the whole specs.idsElement
+        specs.render();
+    }    
+}
+
 class IDSFacet extends HTMLElement {
     load(idsElement) {
+        let self = this;
         this.idsElement = idsElement;
         this.type = this.attributes['type'].value;
         this.params = [];
@@ -877,6 +904,7 @@ class IDSSpec extends HTMLElement {
         }
 
         children = this.getElementsByTagName('ids-facets');
+       
         for (let i = 0; i < children.length; i++) {
             children[i].load(idsElement.getElementsByTagNameNS(ns, children[i].attributes['name'].value)[0]);
         }
@@ -1149,6 +1177,7 @@ window.customElements.define('ids-spec-anchor', IDSSpecAnchor);
 window.customElements.define('ids-spec-target', IDSSpecTarget);
 window.customElements.define('ids-facets', IDSFacets);
 window.customElements.define('ids-facet', IDSFacet);
+window.customElements.define('ids-facet-add', IDSFacetAdd);
 window.customElements.define('ids-facet-remove', IDSFacetRemove);
 window.customElements.define('ids-facet-instructions', IDSFacetInstructions);
 window.customElements.define('ids-param', IDSParam);
