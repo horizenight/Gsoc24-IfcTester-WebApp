@@ -310,7 +310,6 @@ class IDSSpecAttribute extends HTMLElement {
 class IDSFacets extends HTMLElement {
     load(idsElement) {
         let self = this;
-        console.log(idsElement)
         this.idsElement = idsElement;
         this.idsElement.addEventListener('ids-facet-remove', function () { self.render(); });
         this.render();
@@ -422,17 +421,18 @@ class IDSFacetAdd extends HTMLElement{
         let specs = this.closest('ids-specs')
         let facets = this.closest('h3').nextElementSibling;
         
-        // this logic can be abstracted to 
+        // this logic can be abstracted to mkae a dropdown 
         let container = this.closest('ids-container');
         let entity = container.ids.createElementNS(ns,'entity')
         let name = container.ids.createElementNS(ns,'name')
         let simpleValue = container.ids.createElementNS(ns,'simpleValue')
-        simpleValue.textContent = 'IfcWall';
+        simpleValue.textContent = 'IFCBUILDINGELEMENTPROXY';
         name.appendChild(simpleValue);
         entity.appendChild(name);
         facets.idsElement.append(entity)
 
         // renders the whole specs.idsElement
+        //TODO : render the component instead of specs
         specs.render();
     }    
 }
@@ -479,9 +479,11 @@ class IDSFacet extends HTMLElement {
     }
 
     renderTemplate(templates, parameters) {
-        for (var i = 0; i < templates.length; i++) {
-            var hasKeys = true;
-            for (var key in parameters) {
+      console.log('template',templates)
+      console.log('params',parameters)
+        for (let i = 0; i < templates.length; i++) {
+            let hasKeys = true;
+            for (let key in parameters) {
                 if (templates[i].indexOf('{' + key + '}') == -1) {
                     hasKeys = false;
                     break;
@@ -626,34 +628,38 @@ class IDSFacet extends HTMLElement {
     }
 
     loadProperty() {
+        let templates;
         if (this.type == 'applicability') {
-            var templates = [
+            templates = [
                 'Elements with {name} data in the dataset {pset}',
                 'Elements with {name} data of {value} in the dataset {pset}',
                 'Elements with {name} data following the convention of {valuePattern} in the dataset {pset}',
                 'Elements with {name} data with either {valueEnumeration} in the dataset {pset}',
+                '{name} data shall be {valueBounds} in the dataset {pset}'
             ];
         } else if (this.type == 'requirement') {
-            var templates = [
+            templates = [
                 '{name} data shall be provided in the dataset {pset}',
                 '{name} data shall be {value} and in the dataset {pset}',
                 '{name} data shall follow the convention of {valuePattern} and in the dataset {pset}',
                 '{name} data shall be one of {valueEnumeration} and in the dataset {pset}',
+                '{name} data shall be {valueBounds} in the dataset {pset}'
             ];
         }
 
-        var parameters = {};
-
-        var name = this.idsElement.getElementsByTagNameNS(ns, 'name')[0];
-        var value = this.getIdsValue(name);
+        let parameters = {};
+        let name = this.idsElement.getElementsByTagNameNS(ns, 'baseName')[0];
+        let value = this.getIdsValue(name);
+        console.log('value',value)
         if (value.type == 'simpleValue') {
             parameters.name = '<ids-param filter="propertyName">' + this.sentence(value.content) + '</ids-param>';
             this.params.push(value.param);
         }
 
-        var values = this.idsElement.getElementsByTagNameNS(ns, 'value');
+        let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
         if (values.length) {
             value = this.getIdsValue(values[0]);
+            console.log(value)
             if (value.type == 'simpleValue') {
                 parameters.value = '<ids-param>' + value.content + '</ids-param>';
                 this.params.push(value.param);
@@ -663,10 +669,15 @@ class IDSFacet extends HTMLElement {
             } else if (value.type == 'enumeration') {
                 parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
                 this.params.push(value.param);
+            } else if(value.type == 'bounds'){
+                console.log('bounds happend')
+                parameters.valueBounds = '<ids-param>' + value.content + '</ids-param>';
+            } else if(value.type == 'length'){
+                parameters.valueLength = '<ids-param>' + value.content + '</ids-param>'; 
             }
         }
 
-        var propertySet = this.idsElement.getElementsByTagNameNS(ns, 'propertySet')[0];
+        let propertySet = this.idsElement.getElementsByTagNameNS(ns, 'propertySet')[0];
         value = this.getIdsValue(propertySet);
         if (value.type == 'simpleValue') {
             parameters.pset = '<ids-param>' + value.content + '</ids-param>';
@@ -730,23 +741,62 @@ class IDSFacet extends HTMLElement {
     }
 
     getIdsValue(element) {
-        var simpleValues = element.getElementsByTagNameNS(ns, 'simpleValue');
+        let simpleValues = element.getElementsByTagNameNS(ns, 'simpleValue');
         if (simpleValues.length) {
             return { type: 'simpleValue', param: simpleValues[0], content: simpleValues[0].textContent }
         }
-        var restriction = element.getElementsByTagNameNS(xs, 'restriction')[0];
-        var patterns = restriction.getElementsByTagNameNS(xs, 'pattern');
+        let restriction = element.getElementsByTagNameNS(xs, 'restriction')[0];
+        let patterns = restriction.getElementsByTagNameNS(xs, 'pattern');
         if (patterns.length) {
             return { type: 'pattern', param: patterns[0], content: patterns[0].attributes['value'].value }
         }
-        var enumerations = restriction.getElementsByTagNameNS(xs, 'enumeration');
+        let enumerations = restriction.getElementsByTagNameNS(xs, 'enumeration');
         if (enumerations.length) {
-            var values = [];
-            for (var i = 0; i < enumerations.length; i++) {
+            let values = [];
+            for (let i = 0; i < enumerations.length; i++) {
                 values.push(enumerations[i].attributes['value'].value);
             }
             return { type: 'enumeration', param: restriction, content: values.join(' or ') }
         }
+       // TODO: getIdsValue : doesnt take the length restriction into account 
+       let minExclusive = restriction.getElementsByTagNameNS(xs, 'minExclusive');
+       let maxExclusive = restriction.getElementsByTagNameNS(xs, 'maxExclusive');
+       let minInclusive = restriction.getElementsByTagNameNS(xs, 'maxInclusive');
+       let maxInclusive = restriction.getElementsByTagNameNS(xs, 'maxInlcusive');
+
+        if(minExclusive.length || maxExclusive.length){
+            // exclusive bounds are set 
+            let values = "";
+            if(minExclusive.length && maxExclusive.length){
+                values = "greater than " + minExclusive[0].attributes['value'].value + " and less than " + maxExclusive[0].attributes['value'].value;
+            } else if(minExclusive.length){
+                values = "greater than " + minExclusive[0].attributes['value'].value;
+            } else if(maxExclusive.length){
+                values = "less than " + maxExclusive[0].attributes['value'].value;
+            }
+            return {
+                type: 'bounds', 
+                params: { minExclusive: minExclusive[0], maxExclusive: maxExclusive[0] }, 
+                content: values
+            };
+        }
+        else if(minInclusive.length || maxInclusive.length){
+            // inclusive bounds are set 
+            let values = "";
+            if(minInclusive.length && maxInclusive.length){
+                values = "greater than or equal to " + minInclusive[0].attributes['value'].value + " and less than or equal to " + maxInclusive[0].attributes['value'].value;
+            } else if(minInclusive.length){
+                values = "greater than or equal to " + minInclusive[0].attributes['value'].value;
+            } else if(maxInclusive.length){
+                values = "less than or equal to " + maxInclusive[0].attributes['value'].value;
+            }
+            return {
+                type: 'bounds', 
+                params: { minInclusive: minInclusive[0], maxInclusive: maxInclusive[0] }, 
+                content: values
+            };
+        }
+        
     }
 
     capitalise(text) {
@@ -870,7 +920,6 @@ class IDSSpec extends HTMLElement {
         let targetSpecsElement = this.closest('ids-specs')
         let draggedSpecsElement = draggedElement.closest('ids-specs')
         if (targetSpecsElement === draggedSpecsElement) {
-            console.log('same')
             if (draggedElement && targetElement && draggedElement !== targetElement && targetSpecsElement && targetSpecsElement.idsElement) {
                 let specifications = targetSpecsElement.idsElement.getElementsByTagNameNS(ns, 'specification');
                 let draggedIndex = Array.from(specifications).indexOf(draggedElement.idsElement);
@@ -1146,8 +1195,6 @@ class IDSAudit extends HTMLElement {
         let results = JSON.parse(request.responseText);
         results = JSON.parse(results.content)
         let specsElements = container.getElementsByTagName('ids-specs');
-        console.log('results', results.specifications)
-
         for (let i = 0; i < specsElements.length; i++) {
             let specs = specsElements[i];
             specs.showResults(results.specifications);
