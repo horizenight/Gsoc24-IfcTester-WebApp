@@ -7,15 +7,22 @@ var xs = 'http://www.w3.org/2001/XMLSchema';
 
 class IDSNew extends HTMLElement {
     connectedCallback() {
-        this.addEventListener('click', this.click);
+        this.addEventListener('click', this.click.bind(this));
     }
 
     click(e) {
-        var ifcTester = this.closest('ifc-tester');
-        var template = ifcTester.getElementsByTagName('template')[0];
-        console.log(template);
-        ifcTester.appendChild(template.content.cloneNode(true));
-        feather.replace();
+        let ifcTester = this.closest('ifc-tester');
+        // Check if there's already a .ids div present
+        if (!ifcTester.querySelector('.ids')) {
+            let template = ifcTester.getElementsByTagName('template')[0];
+            if (template) {
+                ifcTester.appendChild(template.content.cloneNode(true));
+                feather.replace();
+            }
+        }else{
+            let alertElement = document.querySelector('ids-alert');
+            alertElement.showAlert('Error: New Spec not allowed,' + 'already a ids spec present kindly close it.', 'error');
+        }
     }
 }
 
@@ -25,8 +32,10 @@ class IDSClose extends HTMLElement {
     }
 
     click(e) {
-        let container = this.closest('ids-container');
-        container.parentElement.removeChild(container);
+        const idsContainer = this.closest('.ids');
+        if (idsContainer) {
+            idsContainer.remove();
+        }
     }
 }
 
@@ -421,6 +430,7 @@ class IDSFacetAdd extends HTMLElement{
         let specs = this.closest('ids-specs')
         let facets = this.closest('h3').nextElementSibling;
         
+
         // this logic can be abstracted to mkae a dropdown 
         let container = this.closest('ids-container');
         let entity = container.ids.createElementNS(ns,'entity')
@@ -479,8 +489,6 @@ class IDSFacet extends HTMLElement {
     }
 
     renderTemplate(templates, parameters) {
-      console.log('template',templates)
-      console.log('params',parameters)
         for (let i = 0; i < templates.length; i++) {
             let hasKeys = true;
             for (let key in parameters) {
@@ -498,21 +506,22 @@ class IDSFacet extends HTMLElement {
     }
 
     loadEntity() {
+        let templates;
         if (this.type == 'applicability') {
-            var templates = [
+            templates = [
                 'All {name} data',
                 'All {name} data of type {type}',
                 'All {name} data having a type of either {typeEnumeration}',
             ];
         } else if (this.type == 'requirement') {
-            var templates = [
+            templates = [
                 'Shall be {name} data',
                 'Shall be {name} data of type {type}',
                 'Shall be {name} data with a type of either {typeEnumeration}',
             ];
         }
 
-        var parameters = {};
+        let parameters = {};
         this.parseEntityName(this.idsElement, parameters);
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
@@ -650,7 +659,6 @@ class IDSFacet extends HTMLElement {
         let parameters = {};
         let name = this.idsElement.getElementsByTagNameNS(ns, 'baseName')[0];
         let value = this.getIdsValue(name);
-        console.log('value',value)
         if (value.type == 'simpleValue') {
             parameters.name = '<ids-param filter="propertyName">' + this.sentence(value.content) + '</ids-param>';
             this.params.push(value.param);
@@ -659,7 +667,6 @@ class IDSFacet extends HTMLElement {
         let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
         if (values.length) {
             value = this.getIdsValue(values[0]);
-            console.log(value)
             if (value.type == 'simpleValue') {
                 parameters.value = '<ids-param>' + value.content + '</ids-param>';
                 this.params.push(value.param);
@@ -670,7 +677,6 @@ class IDSFacet extends HTMLElement {
                 parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
                 this.params.push(value.param);
             } else if(value.type == 'bounds'){
-                console.log('bounds happend')
                 parameters.valueBounds = '<ids-param>' + value.content + '</ids-param>';
             } else if(value.type == 'length'){
                 parameters.valueLength = '<ids-param>' + value.content + '</ids-param>'; 
