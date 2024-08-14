@@ -421,33 +421,81 @@ class IDSFacetRemove extends HTMLElement {
     }
 }
 
-class IDSFacetAdd extends HTMLElement{
-    connectedCallback() {
-        this.addEventListener('click', this.click);
+
+class IDSFacetAdd extends HTMLElement {
+    constructor() {
+        super();
+        this.selectedFacet = null; // To store the selected facet type
+        this.list = this.createList(); // Create the list on initialization
     }
 
-   click(e){
-        let specs = this.closest('ids-specs')
-        let facets = this.closest('h3').nextElementSibling;
-        
+    connectedCallback() {
+        this.addEventListener('mouseover', this.showList.bind(this));
+        this.addEventListener('mouseout', this.hideList.bind(this));
+        this.addEventListener('click', this.click.bind(this));
+        this.appendChild(this.list); // Append the list to the element
+    }
 
-        // this logic can be abstracted to mkae a dropdown 
-        let container = this.closest('ids-container');
-        let entity = container.ids.createElementNS(ns,'entity')
-        let name = container.ids.createElementNS(ns,'name')
-        let simpleValue = container.ids.createElementNS(ns,'simpleValue')
-        simpleValue.textContent = 'IFCBUILDINGELEMENTPROXY';
-        name.appendChild(simpleValue);
-        entity.appendChild(name);
-        facets.idsElement.append(entity)
+    createList() {
+        let list = document.createElement('div');
+        list.classList.add('facet-list'); // Add a class for styling
+        let facets = ['Entity Facet', 'Attribute Facet', 'Classification Facet','Property Facet','Material Facet','Part Of Facet']; // List of facet types
 
-        // renders the whole specs.idsElement
-        //TODO : render the component instead of specs
-        specs.render();
-    }    
+        facets.forEach(facet => {
+            let item = document.createElement('div');
+            item.textContent = facet;
+            item.classList.add('facet-item'); 
+            item.addEventListener('click', () => {
+                this.selectedFacet = facet;
+                this.hideList(); 
+            });
+            list.appendChild(item);
+        });
+
+        list.style.display = 'none'; 
+
+        return list;
+    }
+
+    showList() {
+        this.list.style.display = 'block'; // Show the list
+    }
+
+    hideList() {
+        this.list.style.display = 'none'; // Hide the list
+    }
+
+    click(e) {
+        if (this.selectedFacet) {
+            let facet;
+            if(this.selectedFacet == 'Entity Facet'){
+                console.log('Entity Facet')
+                facet = this.createEntityFacet();
+            } else if (this.selectedFacet == 'Attribute Facet') {
+                console.log('Attribute Facet')
+            }else if(this.selectedFacet == 'Classification Facet'){
+                console.log('Classification Facet')
+            }else if(this.selectedFacet == 'Property Facet'){
+                console.log('Property Facet')
+            }else if(this.selectedFacet == 'Material Facet'){
+                console.log('Material Facet')
+            }else if(this.selectedFacet == 'Part Of Facet'){
+                console.log('Part Of Facet')
+            }
+
+            // renders the whole specs.idsElement
+            //TODO : render the component instead of specs
+            // specs.render();
+        }
+    }
+
+    createEntityFacet(){
+            // logic for Entity Facet Goes here
+    }
 }
 
 class IDSFacet extends HTMLElement {
+
     load(idsElement) {
         let self = this;
         this.idsElement = idsElement;
