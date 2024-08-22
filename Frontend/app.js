@@ -19,7 +19,7 @@ class IDSNew extends HTMLElement {
                 ifcTester.appendChild(template.content.cloneNode(true));
                 feather.replace();
             }
-        }else{
+        } else {
             let alertElement = document.querySelector('ids-alert');
             alertElement.showAlert('Error: New Spec not allowed,' + 'already a ids spec present kindly close it.', 'error');
         }
@@ -184,7 +184,7 @@ class IDSSpecAdd extends HTMLElement {
         let newSpec = container.ids.createElementNS(ns, "specification");
         let newApplicability = container.ids.createElementNS(ns, "applicability");
         let newRequirements = container.ids.createElementNS(ns, "requirements");
-        
+
 
         specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
         newSpec.appendChild(newApplicability);
@@ -439,20 +439,20 @@ class IDSFacetAdd extends HTMLElement {
     createList() {
         let list = document.createElement('div');
         list.classList.add('facet-list'); // Add a class for styling
-        let facets = ['Entity Facet', 'Attribute Facet', 'Classification Facet','Property Facet','Material Facet','Part Of Facet']; // List of facet types
+        let facets = ['Entity Facet', 'Attribute Facet', 'Classification Facet', 'Property Facet', 'Material Facet', 'Part Of Facet']; // List of facet types
 
         facets.forEach(facet => {
             let item = document.createElement('div');
             item.textContent = facet;
-            item.classList.add('facet-item'); 
+            item.classList.add('facet-item');
             item.addEventListener('click', () => {
                 this.selectedFacet = facet;
-                this.hideList(); 
+                this.hideList();
             });
             list.appendChild(item);
         });
 
-        list.style.display = 'none'; 
+        list.style.display = 'none';
 
         return list;
     }
@@ -468,18 +468,18 @@ class IDSFacetAdd extends HTMLElement {
     click(e) {
         if (this.selectedFacet) {
             let facet;
-            if(this.selectedFacet == 'Entity Facet'){
+            if (this.selectedFacet == 'Entity Facet') {
                 console.log('Entity Facet')
                 facet = this.createEntityFacet();
             } else if (this.selectedFacet == 'Attribute Facet') {
                 console.log('Attribute Facet')
-            }else if(this.selectedFacet == 'Classification Facet'){
+            } else if (this.selectedFacet == 'Classification Facet') {
                 console.log('Classification Facet')
-            }else if(this.selectedFacet == 'Property Facet'){
+            } else if (this.selectedFacet == 'Property Facet') {
                 console.log('Property Facet')
-            }else if(this.selectedFacet == 'Material Facet'){
+            } else if (this.selectedFacet == 'Material Facet') {
                 console.log('Material Facet')
-            }else if(this.selectedFacet == 'Part Of Facet'){
+            } else if (this.selectedFacet == 'Part Of Facet') {
                 console.log('Part Of Facet')
             }
 
@@ -489,9 +489,128 @@ class IDSFacetAdd extends HTMLElement {
         }
     }
 
-    createEntityFacet(){
-            // logic for Entity Facet Goes here
+    createEntityFacet() {
+        console.log('Entity Facet')
+        let specs = this.closest('ids-specs')
+        let facets = this.closest('h3').nextElementSibling;
+        let container = this.closest('ids-container');
+        let entity = container.ids.createElementNS(ns, 'entity')
+        let name = container.ids.createElementNS(ns, 'name')
+        let simpleValue = container.ids.createElementNS(ns, 'simpleValue')
+        simpleValue.textContent = 'Enter Name';
+        name.appendChild(simpleValue);
+        entity.appendChild(name);
+        
+        // TODO : modify the facet and use it to render the dropdown
+        
+        
+
+        facets.idsElement.append(entity);
+        console.log('facerts=>', facets);
+        console.log('facets =>',facets.idsElement)
+        // renders the whole specs.idsElement
+        //TODO : render the component instead of specs
+        specs.render();
     }
+
+    createAttributeFacet() {
+        console.log('Attribute Facet')
+
+    }
+
+    createClassificationFacet() {
+        console.log('Property Facet')
+    }
+
+    createMaterialFacet() {
+        console.log('Material Facet')
+    }
+
+    createPartOfFacet() {
+        console.log('Part Of Facet')
+    }
+}
+
+class IDSFacetDropdown extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
+    connectedCallback() {
+        this.render();
+        this.addEventListeners();
+    }
+
+    render(){
+        const defaultOption = this.getAttribute('defaultOption') || 'type';
+        console.log(defaultOption)
+        const options = [
+            { value: 'type', text: 'equals' },
+            { value: 'typeEnumeration', text: 'is one of' },
+            { value: 'matchesPattern', text: 'matches pattern' },
+            { value: 'hasValue', text: 'has value' },
+            { value: 'hasLength', text: 'has length' },
+        ];
+
+        this.shadowRoot.innerHTML = `
+            <style>
+                select {
+                    font-size: 1em;
+                    padding: 0.2em;
+                }
+            </style>
+            <select id="dropdown">
+                ${options.map(option => `
+                    <option value="${option.value}" ${option.value === defaultOption ? 'selected' : ''}>
+                        ${option.text}
+                    </option>
+                `).join('')}
+            </select>
+        `;
+    }
+
+    addEventListeners() {
+        this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
+            let container = this.closest('ids-container');  
+            let specs = this.closest('ids-specs')
+            console.log('specs',specs)
+            let facet = this.closest('ids-facet')
+            let idsElement = facet.idsElement;
+            // TODO : make changes based here and re render the component here the modifcation to idsDocument is also done 
+            console.log(e.target.value)
+
+            if (e.target.value === 'type') {
+                let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
+                console.log(predefinedType);
+                if (predefinedType) {
+                    idsElement.removeChild(predefinedType);
+                }
+                console.log(facet.idsElement)
+                predefinedType = container.ids.createElementNS(ns,'predefinedType')
+                let simpleValue = container.ids.createElementNS(ns,'simpleValue')
+                simpleValue.textContent = 'Enter Type SimpleValue';
+                predefinedType.appendChild(simpleValue)
+                idsElement.appendChild(predefinedType)
+                facet.idsElement = idsElement;
+                specs.render();
+
+            }
+            if(e.target.value === 'typeEnumeration'){
+
+            }
+           
+
+
+            this.dispatchEvent(new CustomEvent('selection-changed', {
+                detail: { value: e.target.value },
+                bubbles: true,
+                composed: true,
+            }));
+        });
+    }
+
+
 }
 
 class IDSFacet extends HTMLElement {
@@ -536,17 +655,33 @@ class IDSFacet extends HTMLElement {
         }
     }
 
-    renderTemplate(templates, parameters) {
+    renderTemplate(templates, parameters, dropdownOptions) {
         for (let i = 0; i < templates.length; i++) {
             let hasKeys = true;
             for (let key in parameters) {
-                if (templates[i].indexOf('{' + key + '}') == -1) {
+                if (templates[i].indexOf('{' + key + '}') === -1) {
                     hasKeys = false;
                     break;
                 } else {
                     templates[i] = templates[i].replace('{' + key + '}', parameters[key]);
+
+                    let defaultOption;
+                    
+                    if(key == 'type'){
+                        defaultOption ='type';
+                    }else if(  key == 'typeEnumeration' ){
+                        defaultOption = 'typeEnumeration';
+                    }
+                    if(defaultOption){
+                        templates[i] = templates[i].replace(
+                            '<ids-facet-dropdown></ids-facet-dropdown>',
+                            `<ids-facet-dropdown defaultOption="${defaultOption}"></ids-facet-dropdown>`
+                        );
+                    }
+                    console.log(templates[i])
                 }
             }
+    
             if (hasKeys) {
                 return templates[i];
             }
@@ -558,14 +693,14 @@ class IDSFacet extends HTMLElement {
         if (this.type == 'applicability') {
             templates = [
                 'All {name} data',
-                'All {name} data of type {type}',
-                'All {name} data having a type of either {typeEnumeration}',
+                'All {name} data <ids-facet-dropdown></ids-facet-dropdown>{type}',
+                'All {name} data  <ids-facet-dropdown></ids-facet-dropdown>{typeEnumeration}',
             ];
         } else if (this.type == 'requirement') {
             templates = [
                 'Shall be {name} data',
-                'Shall be {name} data of type {type}',
-                'Shall be {name} data with a type of either {typeEnumeration}',
+                'Shall be {name} data <ids-facet-dropdown></ids-facet-dropdown>{type}',
+                'Shall be {name} data <ids-facet-dropdown></ids-facet-dropdown>{typeEnumeration}',
             ];
         }
 
@@ -724,10 +859,10 @@ class IDSFacet extends HTMLElement {
             } else if (value.type == 'enumeration') {
                 parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
                 this.params.push(value.param);
-            } else if(value.type == 'bounds'){
+            } else if (value.type == 'bounds') {
                 parameters.valueBounds = '<ids-param>' + value.content + '</ids-param>';
-            } else if(value.type == 'length'){
-                parameters.valueLength = '<ids-param>' + value.content + '</ids-param>'; 
+            } else if (value.type == 'length') {
+                parameters.valueLength = '<ids-param>' + value.content + '</ids-param>';
             }
         }
 
@@ -1007,7 +1142,7 @@ class IDSSpec extends HTMLElement {
         }
 
         children = this.getElementsByTagName('ids-facets');
-       
+
         for (let i = 0; i < children.length; i++) {
             children[i].load(idsElement.getElementsByTagNameNS(ns, children[i].attributes['name'].value)[0]);
         }
@@ -1282,3 +1417,4 @@ window.customElements.define('ids-facet-add', IDSFacetAdd);
 window.customElements.define('ids-facet-remove', IDSFacetRemove);
 window.customElements.define('ids-facet-instructions', IDSFacetInstructions);
 window.customElements.define('ids-param', IDSParam);
+window.customElements.define('ids-facet-dropdown', IDSFacetDropdown);
