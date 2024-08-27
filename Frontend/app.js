@@ -673,13 +673,11 @@ class IDSFacetDropdown extends HTMLElement {
                     minInclusive.setAttribute('value', '0');
                     let maxExclusive = container.ids.createElementNS(xs, 'maxExclusive')
                     maxExclusive.setAttribute('value', '0');
-
                     restriction.appendChild(minInclusive)
                     restriction.appendChild(maxExclusive)
                     predefinedType.appendChild(restriction)
                     idsElement.appendChild(predefinedType)
                     facet.idsElement = idsElement;
-
                     specs.render();
                 }
             }
@@ -700,7 +698,7 @@ class IDSFacetBoundsDropdown extends HTMLElement {
     }
     connectedCallback() {
         this.render();
-        // this.addEventListeners();
+        this.addEventListeners();
     }
 
     render() {
@@ -747,6 +745,110 @@ class IDSFacetBoundsDropdown extends HTMLElement {
             </select>
         `;
 
+    }
+
+    addEventListeners() {
+        this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
+            console.log(e.target.value)
+            let container = this.closest('ids-container');
+            let specs = this.closest('ids-specs')
+            console.log('specs', specs)
+            let facet = this.closest('ids-facet')
+            let idsElement = facet.idsElement;
+            let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
+            console.log('predefinedType',predefinedType)
+            let restriction =  predefinedType.getElementsByTagNameNS(xs, 'restriction')[0];
+            console.log('restrictions',restriction)
+            console.log(idsElement)
+
+            if(e.target.value == 'minInclusive'){
+                let minInclusive = predefinedType.getElementsByTagNameNS(xs, 'minInclusive')[0];
+                let minExclusive = predefinedType.getElementsByTagNameNS(xs, 'minExclusive')[0];
+                
+                
+                if(minInclusive){
+                    restriction.removeChild(minInclusive);
+                }
+                if(minExclusive){
+                    restriction.removeChild(minExclusive);
+                }
+
+                minInclusive = container.ids.createElementNS(xs, 'minInclusive')
+                minInclusive.setAttribute('value', 'Enter Value');
+                restriction.appendChild(minInclusive)
+
+                console.log(idsElement)
+                facet.idsElement = idsElement;
+                specs.render();
+            }
+            else if(e.target.value == 'minExclusive'){
+                let minInclusive = predefinedType.getElementsByTagNameNS(xs, 'minInclusive')[0];
+                let minExclusive = predefinedType.getElementsByTagNameNS(xs, 'minExclusive')[0];
+               
+                if(minInclusive){
+                    restriction.removeChild(minInclusive);
+                }
+                if(minExclusive){
+                    restriction.removeChild(minExclusive);
+                }
+
+                minExclusive = container.ids.createElementNS(xs, 'minExclusive')
+                minExclusive.setAttribute('value', 'Enter Value');
+                restriction.appendChild(minExclusive)
+
+                console.log(idsElement)
+                facet.idsElement = idsElement;
+                specs.render();
+            }
+            if(e.target.value == 'maxInclusive'){
+                let maxInclusive = predefinedType.getElementsByTagNameNS(xs, 'maxInclusive')[0];
+                let maxExclusive = predefinedType.getElementsByTagNameNS(xs, 'maxExclusive')[0];
+                
+                
+                if(maxInclusive){
+                    restriction.removeChild(maxInclusive);
+                }
+                if(maxExclusive){
+                    restriction.removeChild(maxExclusive);
+                }
+
+                maxInclusive = container.ids.createElementNS(xs, 'maxInclusive')
+                maxInclusive.setAttribute('value', 'Enter Value');
+                restriction.appendChild(maxInclusive)
+
+                console.log(idsElement)
+                facet.idsElement = idsElement;
+                specs.render();
+            }
+            else if(e.target.value == 'maxExclusive'){
+                let maxInclusive = predefinedType.getElementsByTagNameNS(xs, 'maxInclusive')[0];
+                let maxExclusive = predefinedType.getElementsByTagNameNS(xs, 'maxExclusive')[0];
+                
+         
+                if(maxInclusive){
+                    restriction.removeChild(maxInclusive);
+                }
+                if(maxExclusive){
+                    restriction.removeChild(maxExclusive);
+                }
+                maxExclusive = container.ids.createElementNS(xs, 'maxExclusive')
+                maxExclusive.setAttribute('value', 'Enter Value');
+                restriction.appendChild(maxExclusive)
+
+                console.log(idsElement)
+                facet.idsElement = idsElement;
+                specs.render();
+            }
+            
+
+
+
+            this.dispatchEvent(new CustomEvent('selection-changed', {
+                detail: { value: e.target.value },
+                bubbles: true,
+                composed: true,
+            }));
+        });
     }
 
 }
