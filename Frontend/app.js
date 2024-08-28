@@ -575,64 +575,126 @@ class IDSFacetDropdown extends HTMLElement {
         `;
     }
 
+
+
+    getPredefinedTypesOutsideName() {
+        let allPredefinedTypes = this.idsElement.getElementsByTagNameNS(ns, 'predefinedType');
+        return Array.from(allPredefinedTypes).filter(element => {
+            return !this.isChildOfName(element);
+        });
+    }
+
+    isChildOfName(element) {
+        let parent = element.parentNode;
+        return parent.tagName === 'name';
+    }
+
     addEventListeners() {
         this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
             const target = this.getAttribute('target');
-            let container = this.closest('ids-container');
-            let specs = this.closest('ids-specs')
-            console.log('specs', specs)
-            let facet = this.closest('ids-facet')
-            let idsElement = facet.idsElement;
-            // TODO : make changes based here and re render the component here the modifcation to idsDocument is also done 
-            console.log(e.target.value)
-            console.log('idsElement', idsElement)
 
+            // TODO : make changes based here and re render the component here the modifcation to idsDocument is also done 
 
             if (target == 'name') {
+                let container = this.closest('ids-container');
+                let specs = this.closest('ids-specs')
+                console.log('specs', specs)
+                let facet = this.closest('ids-facet')
+                let idsElement = facet.idsElement;
                 // remove and construct the <name> tag again with restrictions
                 let name = idsElement.getElementsByTagNameNS(ns, 'name')[0];
-                // if (name) {
-                //     idsElement.removeChild(name);
-                // }
+                if (name && idsElement.contains(name)) {
+                    idsElement.removeChild(name);
+                }
                 console.log('name', idsElement)
 
-                // if (e.target.value === 'type') {
-                //     name = container.ids.createElementNS(ns, 'name');
-                //     let simpleValue = container.ids.createElementNS(ns, 'simpleValue')
-                //     simpleValue.textContent = 'Enter Name';
-                //     name.appendChild(simpleValue)
-                //     idsElement.appendChild(name)
-                //     facet.idsElement = idsElement;
-                //     specs.render();
-                // }else if(e.target.value === 'typeEnumeration'){
-                //     name = container.ids.createElementNS(ns, 'name');
-                //     let 
-                // }
+                if (e.target.value === 'type') {
+                    name = container.ids.createElementNS(ns, 'name');
+                    let simpleValue = container.ids.createElementNS(ns, 'simpleValue')
+                    simpleValue.textContent = 'Enter Name';
+                    name.appendChild(simpleValue)
+                    idsElement.appendChild(name)
+                    facet.idsElement = idsElement;
+                    specs.render();
+                } else if (e.target.value === 'typeEnumeration') {
+                    name = container.ids.createElementNS(ns, 'name');
+                    let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
+                    let restriction = container.ids.createElementNS(xs, 'restriction')
+                    let enumeration = container.ids.createElementNS(xs, 'enumeration')
+                    enumeration.setAttribute('value', ' Enter Value ');
+                    restriction.appendChild(enumeration)
+
+                    let enumeration2 = container.ids.createElementNS(xs, 'enumeration')
+                    enumeration2.setAttribute('value', ' Enter Value 2');
+                    restriction.appendChild(enumeration2)
+                    predefinedType.appendChild(restriction)
+                    name.appendChild(predefinedType)
+                    idsElement.appendChild(name)
+                    facet.idsElement = idsElement;
+                    console.log('name', idsElement)
+                    specs.render();
+                }
+                else if (e.target.value === 'matchesPattern') {
+                    name = container.ids.createElementNS(ns, 'name');
+
+                    let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
+                    let restriction = container.ids.createElementNS(xs, 'restriction')
+                    let pattern = container.ids.createElementNS(xs, 'pattern')
+                    pattern.setAttribute('value', ' Enter XML Regular Expression');
+                    restriction.appendChild(pattern)
+                    predefinedType.appendChild(restriction)
+                    name.appendChild(predefinedType)
+                    idsElement.appendChild(name)
+                    console.log('pattern', idsElement)
+                    facet.idsElement = idsElement;
+                    specs.render();
+                }
+                else if (e.target.value = 'bounds') {
+                    name = container.ids.createElementNS(ns, 'name');
+                    let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
+                    let restriction = container.ids.createElementNS(xs, 'restriction')
+                    restriction.setAttribute('base', 'xs:double');
+                    let minInclusive = container.ids.createElementNS(xs, 'minInclusive')
+                    minInclusive.setAttribute('value', '0');
+                    let maxExclusive = container.ids.createElementNS(xs, 'maxExclusive')
+                    maxExclusive.setAttribute('value', '0');
+                    restriction.appendChild(minInclusive)
+                    restriction.appendChild(maxExclusive)
+                    predefinedType.appendChild(restriction)
+                    name.appendChild(predefinedType)
+                    idsElement.appendChild(name)
+                    facet.idsElement = idsElement;
+                    console.log('nameBounds', idsElement)
+                    specs.render();
+                }
 
 
             } else if (target == 'predefinedType') {
                 // remove and construct the <predefinec> tag again  with restrictions 
-                console.log('target value', e.target.value)
-                if (e.target.value === 'type') {
-                    let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
-                    console.log(predefinedType);
-                    if (predefinedType) {
+                let container = this.closest('ids-container');
+                let specs = this.closest('ids-specs')
+                console.log('specs', specs)
+                let facet = this.closest('ids-facet')
+                let idsElement = facet.idsElement;
+                this.idsElement = idsElement
+                let predefinedTypes = this.getPredefinedTypesOutsideName();
+                idsElement = this.idsElement
+                predefinedTypes.forEach(predefinedType => {
+                    if (idsElement.contains(predefinedType)) {
                         idsElement.removeChild(predefinedType);
                     }
-                    predefinedType = container.ids.createElementNS(ns, 'predefinedType')
+                });
+                let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
+                if (e.target.value === 'type') {
                     let simpleValue = container.ids.createElementNS(ns, 'simpleValue')
                     simpleValue.textContent = 'Enter Type';
                     predefinedType.appendChild(simpleValue)
                     idsElement.appendChild(predefinedType)
                     facet.idsElement = idsElement;
+                    console.log('after', idsElement)
                     specs.render();
                 }
                 else if (e.target.value === 'typeEnumeration') {
-                    let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
-                    console.log(predefinedType);
-                    if (predefinedType) {
-                        idsElement.removeChild(predefinedType);
-                    }
                     predefinedType = container.ids.createElementNS(ns, 'predefinedType')
                     let restriction = container.ids.createElementNS(xs, 'restriction')
                     let enumeration = container.ids.createElementNS(xs, 'enumeration')
@@ -647,10 +709,6 @@ class IDSFacetDropdown extends HTMLElement {
                     facet.idsElement = idsElement;
                     specs.render();
                 } else if (e.target.value === 'matchesPattern') {
-                    let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
-                    if (predefinedType) {
-                        idsElement.removeChild(predefinedType);
-                    }
                     predefinedType = container.ids.createElementNS(ns, 'predefinedType')
                     let restriction = container.ids.createElementNS(xs, 'restriction')
                     let pattern = container.ids.createElementNS(xs, 'pattern')
@@ -662,10 +720,6 @@ class IDSFacetDropdown extends HTMLElement {
                     specs.render();
                 }
                 else if (e.target.value = 'bounds') {
-                    let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
-                    if (predefinedType) {
-                        idsElement.removeChild(predefinedType);
-                    }
                     predefinedType = container.ids.createElementNS(ns, 'predefinedType')
                     let restriction = container.ids.createElementNS(xs, 'restriction')
                     restriction.setAttribute('base', 'xs:double');
@@ -747,6 +801,7 @@ class IDSFacetBoundsDropdown extends HTMLElement {
 
     }
 
+
     addEventListeners() {
         this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
             console.log(e.target.value)
@@ -756,20 +811,20 @@ class IDSFacetBoundsDropdown extends HTMLElement {
             let facet = this.closest('ids-facet')
             let idsElement = facet.idsElement;
             let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
-            console.log('predefinedType',predefinedType)
-            let restriction =  predefinedType.getElementsByTagNameNS(xs, 'restriction')[0];
-            console.log('restrictions',restriction)
+            console.log('predefinedType', predefinedType)
+            let restriction = predefinedType.getElementsByTagNameNS(xs, 'restriction')[0];
+            console.log('restrictions', restriction)
             console.log(idsElement)
 
-            if(e.target.value == 'minInclusive'){
+            if (e.target.value == 'minInclusive') {
                 let minInclusive = predefinedType.getElementsByTagNameNS(xs, 'minInclusive')[0];
                 let minExclusive = predefinedType.getElementsByTagNameNS(xs, 'minExclusive')[0];
-                
-                
-                if(minInclusive){
+
+
+                if (minInclusive) {
                     restriction.removeChild(minInclusive);
                 }
-                if(minExclusive){
+                if (minExclusive) {
                     restriction.removeChild(minExclusive);
                 }
 
@@ -781,14 +836,14 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 facet.idsElement = idsElement;
                 specs.render();
             }
-            else if(e.target.value == 'minExclusive'){
+            else if (e.target.value == 'minExclusive') {
                 let minInclusive = predefinedType.getElementsByTagNameNS(xs, 'minInclusive')[0];
                 let minExclusive = predefinedType.getElementsByTagNameNS(xs, 'minExclusive')[0];
-               
-                if(minInclusive){
+
+                if (minInclusive) {
                     restriction.removeChild(minInclusive);
                 }
-                if(minExclusive){
+                if (minExclusive) {
                     restriction.removeChild(minExclusive);
                 }
 
@@ -800,15 +855,15 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 facet.idsElement = idsElement;
                 specs.render();
             }
-            if(e.target.value == 'maxInclusive'){
+            if (e.target.value == 'maxInclusive') {
                 let maxInclusive = predefinedType.getElementsByTagNameNS(xs, 'maxInclusive')[0];
                 let maxExclusive = predefinedType.getElementsByTagNameNS(xs, 'maxExclusive')[0];
-                
-                
-                if(maxInclusive){
+
+
+                if (maxInclusive) {
                     restriction.removeChild(maxInclusive);
                 }
-                if(maxExclusive){
+                if (maxExclusive) {
                     restriction.removeChild(maxExclusive);
                 }
 
@@ -820,15 +875,15 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 facet.idsElement = idsElement;
                 specs.render();
             }
-            else if(e.target.value == 'maxExclusive'){
+            else if (e.target.value == 'maxExclusive') {
                 let maxInclusive = predefinedType.getElementsByTagNameNS(xs, 'maxInclusive')[0];
                 let maxExclusive = predefinedType.getElementsByTagNameNS(xs, 'maxExclusive')[0];
-                
-         
-                if(maxInclusive){
+
+
+                if (maxInclusive) {
                     restriction.removeChild(maxInclusive);
                 }
-                if(maxExclusive){
+                if (maxExclusive) {
                     restriction.removeChild(maxExclusive);
                 }
                 maxExclusive = container.ids.createElementNS(xs, 'maxExclusive')
@@ -839,7 +894,7 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 facet.idsElement = idsElement;
                 specs.render();
             }
-            
+
 
 
 
@@ -896,6 +951,7 @@ class IDSFacet extends HTMLElement {
     }
 
     renderTemplate(templates, parameters) {
+        console.log('params', parameters)
         for (let i = 0; i < templates.length; i++) {
             let hasKeys = true;
             for (let key in parameters) {
@@ -936,39 +992,108 @@ class IDSFacet extends HTMLElement {
         let templates;
         if (this.type == 'applicability') {
             templates = [
+                // type and Combinations
                 'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
 
                 'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+                'Entities where IFC Class <ids-facet-dropdown  target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
 
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {minBoundsDropdown}{minBounds}',
+                'Entities where IFC Class <ids-facet-dropdown  target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown> {maxBoundsDropdown}{maxBounds}',
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown> {minBoundsDropdown}{minBounds} and {maxBoundsDropdown} {maxBounds}',
+                'Entities where IFC Class <ids-facet-dropdown  target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
 
+                //typeEnumeration and Combinations 
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
+
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration}and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+
+                //namePattern and Combinations 
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+
+                // nameBounds and Combination 
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
 
             ];
         } else if (this.type == 'requirement') {
+
             templates = [
-               'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
+                // type and Combinations
+                'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
 
                 'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+                'Entities where IFC Class <ids-facet-dropdown  target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
 
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {minBoundsDropdown}{minBounds}',
+                'Entities where IFC Class <ids-facet-dropdown  target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown> {maxBoundsDropdown}{maxBounds}',
 
-                'Entities where IFC Class <ids-facet-dropdown  target="name"  ></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown> {minBoundsDropdown}{minBounds} and {maxBoundsDropdown} {maxBounds}',
+                'Entities where IFC Class <ids-facet-dropdown  target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+
+                //typeEnumeration and Combinations 
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
+
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration}and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+
+                //namePattern and Combinations 
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+
+                // nameBounds and Combination 
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+
             ];
         }
 
@@ -978,76 +1103,122 @@ class IDSFacet extends HTMLElement {
     }
 
     parseEntityName(idsElement, parameters) {
+
         let name = this.idsElement.getElementsByTagNameNS(ns, 'name')[0];
-        let value = this.getIdsValue(name);
-        if (value.type == 'simpleValue' || value.type == 'enumeration') {
-            let content = this.capitalise(value.content.toLowerCase().replaceAll('ifc', ''))
-            parameters.name = '<ids-param filter="entityName">' + content + '</ids-param>';
+        let nameValue = this.getIdsValue(name);
+
+
+        this.processNameValue(nameValue, parameters);
+
+        // Get all 'predefinedType' elements and filter those not inside 'name'
+        let predefinedTypes = this.getPredefinedTypesOutsideName();
+
+        if (predefinedTypes.length > 0) {
+            let predefinedValue = this.getIdsValue(predefinedTypes[0]);
+            this.processPredefinedValue(predefinedValue, parameters);
+        }
+    }
+
+    processNameValue(value, parameters) {
+        if (value.type === 'simpleValue') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.name = `<ids-param filter="entityName">${content}</ids-param>`;
+            this.params.push(value.param);
+        } else if (value.type === 'enumeration') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.nameTypeEnumeration = `<ids-param filter="entityName">${content}</ids-param>`;
             this.params.push(value.param);
         }
-        let predefinedTypes = this.idsElement.getElementsByTagNameNS(ns, 'predefinedType');
-        if (predefinedTypes.length) {
-            value = this.getIdsValue(predefinedTypes[0]);
-            console.log('predefinedTypes[0]', predefinedTypes[0])
-            console.log('value', value)
-            if (value.type == 'simpleValue') {
-                parameters.type = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'enumeration') {
-                parameters.typeEnumeration = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'pattern') {
-                parameters.pattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
-                this.params.push(value.param);
+        else if (value.type === 'pattern') {
+            parameters.namePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            this.params.push(value.param);
+        }
+        else if (value.type === 'bounds') {
+            parameters.nameBounds = this.processBoundsValue(value, parameters);
+            this.params.push(value.param);
+        }
+    }
+
+    getPredefinedTypesOutsideName() {
+        let allPredefinedTypes = this.idsElement.getElementsByTagNameNS(ns, 'predefinedType');
+        return Array.from(allPredefinedTypes).filter(element => {
+            return !this.isChildOfName(element);
+        });
+    }
+
+    isChildOfName(element) {
+        let parent = element.parentNode;
+        return parent.tagName === 'name';
+    }
+
+    processPredefinedValue(value, parameters) {
+        if (value.type === 'simpleValue') {
+            parameters.type = `<ids-param>${value.content}</ids-param>`;
+        } else if (value.type === 'enumeration') {
+            parameters.typeEnumeration = `<ids-param>${value.content}</ids-param>`;
+        } else if (value.type === 'pattern') {
+            parameters.pattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+        } else if (value.type === 'bounds') {
+            parameters.bounds = this.processBoundsValue(value, parameters);
+        } else if (value.type === 'length') {
+            // TODO: not implemented
+        }
+        this.params.push(value.param);
+    }
+
+    processBoundsValue(value, parameters) {
+        let minBoundsDropdowns = '';
+        let minBoundsValues = '';
+        let maxBoundsDropdowns = '';
+        let maxBoundsValues = '';
+        if (value.param.minInclusive || value.param.minExclusive) {
+            minBoundsDropdowns += this.createBoundsDropdown('min', value.param);
+            minBoundsValues += `<ids-param class="bounds">${this.getBoundsValue(value.param, 'min')}</ids-param>`;
+        }
+
+        if (value.param.maxExclusive || value.param.maxInclusive) {
+            maxBoundsDropdowns += this.createBoundsDropdown('max', value.param);
+            maxBoundsValues += `<ids-param class="bounds">${this.getBoundsValue(value.param, 'max')}</ids-param>`;
+        }
+
+        // Combine dropdowns and values
+        let bounds;
+        if (minBoundsDropdowns && maxBoundsDropdowns) {
+            bounds = `${minBoundsDropdowns} ${minBoundsValues} and ${maxBoundsDropdowns} ${maxBoundsValues} `;
+        } else if (minBoundsDropdowns) {
+            bounds = `${minBoundsDropdowns} ${minBoundsValues}`;
+        } else if (maxBoundsDropdowns) {
+            bounds = `${maxBoundsDropdowns} ${maxBoundsValues} `;
+        }
+
+        return bounds;
+    }
+
+    createBoundsDropdown(type, param) {
+        let dropdown = document.createElement('ids-facet-bounds-dropdown');
+        dropdown.setAttribute('type', type);
+
+        if (type === 'min') {
+            if (param.minInclusive) {
+                dropdown.setAttribute('minInclusive', param.minInclusive);
+            } else if (param.minExclusive) {
+                dropdown.setAttribute('minExclusive', param.minExclusive);
             }
-            else if (value.type == 'bounds') {
-                let minBoundsDropdown = undefined;
-                let maxBoundsDropdown = undefined;
-
-
-                if (value.param.minInclusive || value.param.minExclusive) {
-                    minBoundsDropdown = document.createElement('ids-facet-bounds-dropdown');
-                    minBoundsDropdown.setAttribute('type', 'min');
-                    let minBoundsValue = undefined;
-                    if (value.param.minInclusive) {
-                        minBoundsDropdown.setAttribute('minInclusive', value.param.minInclusive);
-                        minBoundsValue = value.param.minInclusive;
-                    }
-                    else if (value.param.minExclusive) {
-                        minBoundsDropdown.setAttribute('minExclusive', value.param.minExclusive);
-                        minBoundsValue = value.param.minExclusive;
-                    }
-
-                    parameters.minBoundsDropdown = minBoundsDropdown.outerHTML;
-                    parameters.minBounds = '<ids-param class="bounds">' + minBoundsValue + '</ids-param>';
-                }
-
-                if (value.param.maxExclusive || value.param.maxInclusive) {
-                    maxBoundsDropdown = document.createElement('ids-facet-bounds-dropdown');
-                    maxBoundsDropdown.setAttribute('type', 'max');
-                    let maxBoundsValue = undefined;
-                    if (value.param.maxInclusive) {
-                        maxBoundsDropdown.setAttribute('maxInclusive', value.param.maxInclusive);
-                        maxBoundsValue = value.param.maxInclusive;
-                    }
-                    if (value.param.maxExclusive) {
-                        maxBoundsDropdown.setAttribute('maxExclusive', value.param.maxExclusive);
-                        maxBoundsValue = value.param.maxExclusive
-                    }
-
-                    parameters.maxBoundsDropdown = maxBoundsDropdown.outerHTML;
-                    parameters.maxBounds = '<ids-param class="bounds">' + maxBoundsValue + '</ids-param>';
-                }
-
-                this.params.push(minBoundsDropdown)
-                this.params.push(maxBoundsDropdown)
-                this.params.push(value.param);
-            }
-            else if (value.type == 'length') {
-                //TODO : not implemented 
+        } else if (type === 'max') {
+            if (param.maxInclusive) {
+                dropdown.setAttribute('maxInclusive', param.maxInclusive);
+            } else if (param.maxExclusive) {
+                dropdown.setAttribute('maxExclusive', param.maxExclusive);
             }
         }
 
+        return dropdown.outerHTML;
+    }
+
+    getBoundsValue(param, type) {
+        return type === 'min'
+            ? param.minInclusive || param.minExclusive
+            : param.maxInclusive || param.maxExclusive;
     }
 
     loadAttribute() {
