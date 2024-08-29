@@ -12,3 +12,21 @@
 ### Accomplishment
 - Loading is completed.
 - Currently working on the Dropdown option to create the appropriate `idsElement`.
+
+
+
+## Journal Entry - [28 Aug 2024]
+
+### Plan
+- Completed `Entity Facet`
+
+### Difficulties
+1. Too many combinations of templates to be considered  ( making it cluttered)
+
+### Accomplishment
+- Entity Facet is addded Succesfully
+
+### Next Plan
+- Complete `Attribute Facet`
+- Complete `Classification facet`
+
