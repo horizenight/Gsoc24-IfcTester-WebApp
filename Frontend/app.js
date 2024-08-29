@@ -425,115 +425,120 @@ class IDSFacetRemove extends HTMLElement {
 class IDSFacetAdd extends HTMLElement {
     constructor() {
         super();
-        this.selectedFacet = null; // To store the selected facet type
-        this.list = this.createList(); // Create the list on initialization
+        this.selectedFacet = null;
+        this.list = this.createList();
     }
 
     connectedCallback() {
         this.addEventListener('mouseover', this.showList.bind(this));
         this.addEventListener('mouseout', this.hideList.bind(this));
         this.addEventListener('click', this.click.bind(this));
-        this.appendChild(this.list); // Append the list to the element
+        this.appendChild(this.list);
     }
 
     createList() {
-        let list = document.createElement('div');
-        list.classList.add('facet-list'); // Add a class for styling
-        let facets = ['Entity Facet', 'Attribute Facet', 'Classification Facet', 'Property Facet', 'Material Facet', 'Part Of Facet']; // List of facet types
-
-        facets.forEach(facet => {
-            let item = document.createElement('div');
-            item.textContent = facet;
-            item.classList.add('facet-item');
-            item.addEventListener('click', () => {
-                this.selectedFacet = facet;
-                this.hideList();
-            });
-            list.appendChild(item);
+        const facets = ['Entity Facet', 'Attribute Facet', 'Classification Facet', 'Property Facet', 'Material Facet', 'Part Of Facet'];
+        return this.createDropdownList(facets, 'facet-item', facet => {
+            this.selectedFacet = facet;
+            this.hideList();
         });
+    }
 
+    createDropdownList(items, itemClass, onClickCallback) {
+        const list = document.createElement('div');
+        list.classList.add('facet-list');
         list.style.display = 'none';
+
+        items.forEach(item => {
+            const listItem = document.createElement('div');
+            listItem.textContent = item;
+            listItem.classList.add(itemClass);
+            listItem.addEventListener('click', () => onClickCallback(item));
+            list.appendChild(listItem);
+        });
 
         return list;
     }
 
     showList() {
-        this.list.style.display = 'block'; // Show the list
+        this.list.style.display = 'block';
     }
 
     hideList() {
-        this.list.style.display = 'none'; // Hide the list
+        this.list.style.display = 'none';
     }
 
     click(e) {
         if (this.selectedFacet) {
-            let facet;
-            if (this.selectedFacet == 'Entity Facet') {
-                console.log('Entity Facet')
-                facet = this.createEntityFacet();
-            } else if (this.selectedFacet == 'Attribute Facet') {
-                console.log('Attribute Facet')
-            } else if (this.selectedFacet == 'Classification Facet') {
-                console.log('Classification Facet')
-            } else if (this.selectedFacet == 'Property Facet') {
-                console.log('Property Facet')
-            } else if (this.selectedFacet == 'Material Facet') {
-                console.log('Material Facet')
-            } else if (this.selectedFacet == 'Part Of Facet') {
-                console.log('Part Of Facet')
-            }
-
-            // renders the whole specs.idsElement
-            //TODO : render the component instead of specs
-            // specs.render();
+            this.handleFacetCreation(this.selectedFacet);
         }
     }
 
+    handleFacetCreation(facetType) {
+        const facetMap = {
+            'Entity Facet': this.createEntityFacet,
+            'Attribute Facet': this.createAttributeFacet,
+            'Classification Facet': this.createClassificationFacet,
+            'Property Facet': this.createPropertyFacet,
+            'Material Facet': this.createMaterialFacet,
+            'Part Of Facet': this.createPartOfFacet
+        };
+
+        const createFacetFunction = facetMap[facetType];
+        if (createFacetFunction) {
+            createFacetFunction.call(this);
+        }
+    }
+
+    createFacetElement(container, tagName, childElements) {
+        const element = container.ids.createElementNS(ns, tagName);
+        childElements.forEach(child => element.appendChild(child));
+        return element;
+    }
+
+    createSimpleValueElement(container, textContent) {
+        const simpleValue = container.ids.createElementNS(ns, 'simpleValue');
+        simpleValue.textContent = textContent;
+        return simpleValue;
+    }
+
     createEntityFacet() {
-        console.log('Entity Facet')
-        let specs = this.closest('ids-specs')
-        let facets = this.closest('h3').nextElementSibling;
-        let container = this.closest('ids-container');
-        let entity = container.ids.createElementNS(ns, 'entity')
-        let name = container.ids.createElementNS(ns, 'name')
-        let simpleValueName = container.ids.createElementNS(ns, 'simpleValue')
-        simpleValueName.textContent = 'Enter Name';
-        name.appendChild(simpleValueName);
-        entity.appendChild(name);
-
-        let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-        let simpleValueType = container.ids.createElementNS(ns, 'simpleValue')
-        simpleValueType.textContent = 'Enter Type';
-        predefinedType.appendChild(simpleValueType)
-        entity.appendChild(predefinedType);
-
-        // TODO : modify the facet and use it to render the dropdown
-
-        console.log('entity', entity)
-
-        facets.idsElement.append(entity);
-
-        // renders the whole specs.idsElement
-        //TODO : render the component instead of specs
-        specs.render();
+        this.createAndRenderFacet('entity', [
+            { tag: 'name', content: 'Enter Name' },
+            { tag: 'predefinedType', content: 'Enter Type' }
+        ]);
     }
 
     createAttributeFacet() {
-        console.log('Attribute Facet')
-
+        this.createAndRenderFacet('attribute', [
+            { tag: 'name', content: 'Enter Name' },
+            { tag: 'value', content: 'Enter Value' }
+        ]);
     }
 
-    createClassificationFacet() {
-        console.log('Property Facet')
+    createClassificationFacet() { console.log('Classification Facet'); }
+
+    createAndRenderFacet(facetTagName, elements) {
+        const container = this.closest('ids-container');
+        const facets = this.closest('h3').nextElementSibling;
+        const specs = this.closest('ids-specs');
+
+        const facetElements = elements.map(({ tag, content }) => {
+            const child = this.createFacetElement(container, tag, [this.createSimpleValueElement(container, content)]);
+            return child;
+        });
+
+        const facet = this.createFacetElement(container, facetTagName, facetElements);
+        facets.idsElement.append(facet);
+
+        specs.render();
     }
 
-    createMaterialFacet() {
-        console.log('Material Facet')
-    }
-
-    createPartOfFacet() {
-        console.log('Part Of Facet')
-    }
+    // Stub methods for other facets
+  
+    createPropertyFacet() { console.log('Property Facet'); }
+    createMaterialFacet() { console.log('Material Facet'); }
+    createPartOfFacet() { console.log('Part Of Facet'); }
 }
 
 class IDSFacetDropdown extends HTMLElement {
@@ -549,7 +554,6 @@ class IDSFacetDropdown extends HTMLElement {
 
     render() {
         const defaultOption = this.getAttribute('defaultOption') || 'type';
-        console.log(defaultOption)
         const options = [
             { value: 'type', text: 'equals' },
             { value: 'typeEnumeration', text: 'is one of' },
@@ -575,175 +579,124 @@ class IDSFacetDropdown extends HTMLElement {
         `;
     }
 
-
-
-    getPredefinedTypesOutsideName() {
-        let allPredefinedTypes = this.idsElement.getElementsByTagNameNS(ns, 'predefinedType');
-        return Array.from(allPredefinedTypes).filter(element => {
-            return !this.isChildOfName(element);
-        });
-    }
-
-    isChildOfName(element) {
-        let parent = element.parentNode;
-        return parent.tagName === 'name';
-    }
-
     addEventListeners() {
-        this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
-            const target = this.getAttribute('target');
-
-            // TODO : make changes based here and re render the component here the modifcation to idsDocument is also done 
-
-            if (target == 'name') {
-                let container = this.closest('ids-container');
-                let specs = this.closest('ids-specs')
-                console.log('specs', specs)
-                let facet = this.closest('ids-facet')
-                let idsElement = facet.idsElement;
-                // remove and construct the <name> tag again with restrictions
-                let name = idsElement.getElementsByTagNameNS(ns, 'name')[0];
-                if (name && idsElement.contains(name)) {
-                    idsElement.removeChild(name);
-                }
-                console.log('name', idsElement)
-
-                if (e.target.value === 'type') {
-                    name = container.ids.createElementNS(ns, 'name');
-                    let simpleValue = container.ids.createElementNS(ns, 'simpleValue')
-                    simpleValue.textContent = 'Enter Name';
-                    name.appendChild(simpleValue)
-                    idsElement.appendChild(name)
-                    facet.idsElement = idsElement;
-                    specs.render();
-                } else if (e.target.value === 'typeEnumeration') {
-                    name = container.ids.createElementNS(ns, 'name');
-                    let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-                    let restriction = container.ids.createElementNS(xs, 'restriction')
-                    let enumeration = container.ids.createElementNS(xs, 'enumeration')
-                    enumeration.setAttribute('value', ' Enter Value ');
-                    restriction.appendChild(enumeration)
-
-                    let enumeration2 = container.ids.createElementNS(xs, 'enumeration')
-                    enumeration2.setAttribute('value', ' Enter Value 2');
-                    restriction.appendChild(enumeration2)
-                    predefinedType.appendChild(restriction)
-                    name.appendChild(predefinedType)
-                    idsElement.appendChild(name)
-                    facet.idsElement = idsElement;
-                    console.log('name', idsElement)
-                    specs.render();
-                }
-                else if (e.target.value === 'matchesPattern') {
-                    name = container.ids.createElementNS(ns, 'name');
-
-                    let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-                    let restriction = container.ids.createElementNS(xs, 'restriction')
-                    let pattern = container.ids.createElementNS(xs, 'pattern')
-                    pattern.setAttribute('value', ' Enter XML Regular Expression');
-                    restriction.appendChild(pattern)
-                    predefinedType.appendChild(restriction)
-                    name.appendChild(predefinedType)
-                    idsElement.appendChild(name)
-                    console.log('pattern', idsElement)
-                    facet.idsElement = idsElement;
-                    specs.render();
-                }
-                else if (e.target.value = 'bounds') {
-                    name = container.ids.createElementNS(ns, 'name');
-                    let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-                    let restriction = container.ids.createElementNS(xs, 'restriction')
-                    restriction.setAttribute('base', 'xs:double');
-                    let minInclusive = container.ids.createElementNS(xs, 'minInclusive')
-                    minInclusive.setAttribute('value', '0');
-                    let maxExclusive = container.ids.createElementNS(xs, 'maxExclusive')
-                    maxExclusive.setAttribute('value', '0');
-                    restriction.appendChild(minInclusive)
-                    restriction.appendChild(maxExclusive)
-                    predefinedType.appendChild(restriction)
-                    name.appendChild(predefinedType)
-                    idsElement.appendChild(name)
-                    facet.idsElement = idsElement;
-                    console.log('nameBounds', idsElement)
-                    specs.render();
-                }
-
-
-            } else if (target == 'predefinedType') {
-                // remove and construct the <predefinec> tag again  with restrictions 
-                let container = this.closest('ids-container');
-                let specs = this.closest('ids-specs')
-                console.log('specs', specs)
-                let facet = this.closest('ids-facet')
-                let idsElement = facet.idsElement;
-                this.idsElement = idsElement
-                let predefinedTypes = this.getPredefinedTypesOutsideName();
-                idsElement = this.idsElement
-                predefinedTypes.forEach(predefinedType => {
-                    if (idsElement.contains(predefinedType)) {
-                        idsElement.removeChild(predefinedType);
-                    }
-                });
-                let predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-                if (e.target.value === 'type') {
-                    let simpleValue = container.ids.createElementNS(ns, 'simpleValue')
-                    simpleValue.textContent = 'Enter Type';
-                    predefinedType.appendChild(simpleValue)
-                    idsElement.appendChild(predefinedType)
-                    facet.idsElement = idsElement;
-                    console.log('after', idsElement)
-                    specs.render();
-                }
-                else if (e.target.value === 'typeEnumeration') {
-                    predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-                    let restriction = container.ids.createElementNS(xs, 'restriction')
-                    let enumeration = container.ids.createElementNS(xs, 'enumeration')
-                    enumeration.setAttribute('value', ' Enter Value ');
-                    restriction.appendChild(enumeration)
-
-                    let enumeration2 = container.ids.createElementNS(xs, 'enumeration')
-                    enumeration2.setAttribute('value', ' Enter Value 2');
-                    restriction.appendChild(enumeration2)
-                    predefinedType.appendChild(restriction)
-                    idsElement.appendChild(predefinedType)
-                    facet.idsElement = idsElement;
-                    specs.render();
-                } else if (e.target.value === 'matchesPattern') {
-                    predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-                    let restriction = container.ids.createElementNS(xs, 'restriction')
-                    let pattern = container.ids.createElementNS(xs, 'pattern')
-                    pattern.setAttribute('value', ' Enter XML Regular Expression');
-                    restriction.appendChild(pattern)
-                    predefinedType.appendChild(restriction)
-                    idsElement.appendChild(predefinedType)
-                    facet.idsElement = idsElement;
-                    specs.render();
-                }
-                else if (e.target.value = 'bounds') {
-                    predefinedType = container.ids.createElementNS(ns, 'predefinedType')
-                    let restriction = container.ids.createElementNS(xs, 'restriction')
-                    restriction.setAttribute('base', 'xs:double');
-                    let minInclusive = container.ids.createElementNS(xs, 'minInclusive')
-                    minInclusive.setAttribute('value', '0');
-                    let maxExclusive = container.ids.createElementNS(xs, 'maxExclusive')
-                    maxExclusive.setAttribute('value', '0');
-                    restriction.appendChild(minInclusive)
-                    restriction.appendChild(maxExclusive)
-                    predefinedType.appendChild(restriction)
-                    idsElement.appendChild(predefinedType)
-                    facet.idsElement = idsElement;
-                    specs.render();
-                }
-            }
-
-            this.dispatchEvent(new CustomEvent('selection-changed', {
-                detail: { value: e.target.value },
-                bubbles: true,
-                composed: true,
-            }));
-        });
+        this.shadowRoot.querySelector('#dropdown').addEventListener('change', this.handleDropdownChange.bind(this));
     }
 
+    handleDropdownChange(e) {
+        const target = this.getAttribute('target');
+        if (!target) return;
+
+        const handlers = {
+            'name': this.handleNameChange,
+            'predefinedType': this.handlePredefinedTypeChange,
+            'value': this.handleValueChange
+        };
+
+        const handler = handlers[target];
+        if (handler) {
+            handler.call(this, e.target.value);
+        }
+
+        this.dispatchEvent(new CustomEvent('selection-changed', {
+            detail: { value: e.target.value },
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    handleNameChange(value) {
+        this.updateFacetElement('name', value, [
+            { value: 'type', elements: () => [this.createSimpleValueElement('Enter Name')] },
+            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
+            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+            { value: 'bounds', elements: () => this.createBoundsElement() }
+        ]);
+    }
+
+    handlePredefinedTypeChange(value) {
+        this.updateFacetElement('predefinedType', value, [
+            { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
+            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
+            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+            { value: 'bounds', elements: () => this.createBoundsElement() }
+        ]);
+    }
+
+    handleValueChange(value){
+        this.updateFacetElement('value',value,[
+            { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
+            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
+            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+            { value: 'bounds', elements: () => this.createBoundsElement() }
+        ])
+    }
+
+    updateFacetElement(tagName, value, options) {
+        const container = this.closest('ids-container');
+        const specs = this.closest('ids-specs');
+        const facet = this.closest('ids-facet');
+        const idsElement = facet.idsElement;
+
+        let element = idsElement.getElementsByTagNameNS(ns, tagName)[0];
+        if (element) {
+            idsElement.removeChild(element);
+        }
+
+        const option = options.find(opt => opt.value === value);
+        if (option) {
+            element = this.createFacetElement(container, tagName, option.elements());
+            idsElement.appendChild(element);
+            facet.idsElement = idsElement;
+            console.log('every update',idsElement)
+            specs.render();
+        }
+    }
+
+    createFacetElement(container, tagName, childElements) {
+        const element = container.ids.createElementNS(ns, tagName);
+        childElements.forEach(child => element.appendChild(child));
+        return element;
+    }
+
+    createSimpleValueElement(textContent) {
+        const simpleValue = document.createElementNS(ns, 'simpleValue');
+        simpleValue.textContent = textContent;
+        return simpleValue;
+    }
+
+    createEnumerationElements(values) {
+        const restriction = document.createElementNS(xs, 'restriction');
+        values.forEach(value => {
+            const enumeration = document.createElementNS(xs, 'enumeration');
+            enumeration.setAttribute('value', value);
+            restriction.appendChild(enumeration);
+        });
+        return [restriction];
+    }
+
+    createPatternElement(value) {
+        const restriction = document.createElementNS(xs, 'restriction');
+        const pattern = document.createElementNS(xs, 'pattern');
+        pattern.setAttribute('value', value);
+        restriction.appendChild(pattern);
+        return [restriction];
+    }
+
+    createBoundsElement() {
+        const restriction = document.createElementNS(xs, 'restriction');
+        restriction.setAttribute('base', 'xs:double');
+
+        const minInclusive = document.createElementNS(xs, 'minInclusive');
+        minInclusive.setAttribute('value', '0');
+        const maxExclusive = document.createElementNS(xs, 'maxExclusive');
+        maxExclusive.setAttribute('value', '0');
+
+        restriction.appendChild(minInclusive);
+        restriction.appendChild(maxExclusive);
+
+        return [restriction];
+    }
 }
 class IDSFacetBoundsDropdown extends HTMLElement {
     constructor() {
@@ -1046,7 +999,13 @@ class IDSFacet extends HTMLElement {
 
             templates = [
                 // type and Combinations
-                'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
+                'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown defaultoption="type"> {name} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown defaultoption="typeEnumeration"> {name} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown defaultoption="matchesPattern"> {name} data',
+
+                'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown defaultoption="bounds"> {name} data',
 
                 'Entities where IFC Class <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="type" ></ids-facet-dropdown>{type}',
 
@@ -1108,7 +1067,7 @@ class IDSFacet extends HTMLElement {
         let nameValue = this.getIdsValue(name);
 
 
-        this.processNameValue(nameValue, parameters);
+        this.processEntityNameValue(nameValue, parameters);
 
         // Get all 'predefinedType' elements and filter those not inside 'name'
         let predefinedTypes = this.getPredefinedTypesOutsideName();
@@ -1119,7 +1078,7 @@ class IDSFacet extends HTMLElement {
         }
     }
 
-    processNameValue(value, parameters) {
+    processEntityNameValue(value, parameters) {
         if (value.type === 'simpleValue') {
             let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
             parameters.name = `<ids-param filter="entityName">${content}</ids-param>`;
@@ -1127,6 +1086,26 @@ class IDSFacet extends HTMLElement {
         } else if (value.type === 'enumeration') {
             let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
             parameters.nameTypeEnumeration = `<ids-param filter="entityName">${content}</ids-param>`;
+            this.params.push(value.param);
+        }
+        else if (value.type === 'pattern') {
+            parameters.namePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            this.params.push(value.param);
+        }
+        else if (value.type === 'bounds') {
+            parameters.nameBounds = this.processBoundsValue(value, parameters);
+            this.params.push(value.param);
+        }
+    }
+
+    processAttributeNameValue(value, parameters) {
+        if (value.type === 'simpleValue') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.name = `<ids-param filter="attributeName">${content}</ids-param>`;
+            this.params.push(value.param);
+        } else if (value.type === 'enumeration') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.nameTypeEnumeration = `<ids-param ilter="attributeName">${content}</ids-param>`;
             this.params.push(value.param);
         }
         else if (value.type === 'pattern') {
@@ -1166,6 +1145,24 @@ class IDSFacet extends HTMLElement {
         this.params.push(value.param);
     }
 
+    processAttributeValue(values, parameters) {
+        if (values.length) {
+            let value = this.getIdsValue(values[0]);
+            if (value.type == 'simpleValue') {
+                parameters.type = '<ids-param>' + value.content + '</ids-param>';
+            } else if (value.type == 'pattern') {
+                parameters.pattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            } else if (value.type == 'enumeration') {
+                parameters.typeEnumeration = `<ids-param>${value.content}</ids-param>`;
+            }
+            else if (value.type === 'bounds') {
+                parameters.bounds = this.processBoundsValue(value, parameters);
+            } else if (value.type === 'length') {
+                // TODO: not implemented
+            }
+            this.params.push(value.param);
+        }
+    }
     processBoundsValue(value, parameters) {
         let minBoundsDropdowns = '';
         let minBoundsValues = '';
@@ -1220,46 +1217,130 @@ class IDSFacet extends HTMLElement {
             ? param.minInclusive || param.minExclusive
             : param.maxInclusive || param.maxExclusive;
     }
-
-    loadAttribute() {
-        if (this.type == 'applicability') {
-            var templates = [
-                'Data where the {name} is provided',
-                'Data where the {name} is {value}',
-                'Data where the {name} follows the convention of {valuePattern}',
-                'Data where the {name} is either {valueEnumeration}',
-            ];
-        } else if (this.type == 'requirement') {
-            var templates = [
-                'The {name} shall be provided',
-                'The {name} shall be {value}',
-                'The {name} shall follow the convention of {valuePattern}',
-                'The {name} shall be either {valueEnumeration}'
-            ];
-        }
-
-        var parameters = {};
-
-        var name = this.idsElement.getElementsByTagNameNS(ns, 'name')[0];
-        var value = this.getIdsValue(name);
+    processAttributeNameValue(value, parameters) {
         if (value.type == 'simpleValue') {
             parameters.name = '<ids-param filter="attributeName">' + this.sentence(value.content) + '</ids-param>';
             this.params.push(value.param);
+        
+        } else if (value.type === 'enumeration') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.nameTypeEnumeration = `<ids-param filter="attributeName"">${content}</ids-param>`;
+            this.params.push(value.param);
         }
-        var values = this.idsElement.getElementsByTagNameNS(ns, 'value');
-        if (values.length) {
-            value = this.getIdsValue(values[0]);
-            if (value.type == 'simpleValue') {
-                parameters.value = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'pattern') {
-                parameters.valuePattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'enumeration') {
-                parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            }
+        else if (value.type === 'pattern') {
+            parameters.namePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            this.params.push(value.param);
         }
+        else if (value.type === 'bounds') {
+            parameters.nameBounds = this.processBoundsValue(value, parameters);
+            this.params.push(value.param);
+        }
+    }
+
+    loadAttribute() {
+        let templates;
+        if (this.type == 'applicability') {
+            templates = [
+                // type and Combinations
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+            
+                //typeEnumeration and Combinations 
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+            
+                //namePattern and Combinations 
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+            
+                // nameBounds and Combination 
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+            ];
+        } else if (this.type == 'requirement') {
+            templates = [
+                // type and Combinations
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+            
+                //typeEnumeration and Combinations 
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+            
+                //namePattern and Combinations 
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+            
+                // nameBounds and Combination 
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+            
+                'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>{bounds}',
+            ];
+        }
+
+        let parameters = {};
+    
+        let name = this.idsElement.getElementsByTagNameNS(ns, 'name')[0];
+        let nameValue = this.getIdsValue(name);
+        this.processAttributeNameValue(nameValue, parameters);
+        
+        let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
+        this.processAttributeValue(values, parameters);
 
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
@@ -1287,6 +1368,7 @@ class IDSFacet extends HTMLElement {
 
         var value;
         var systems = this.idsElement.getElementsByTagNameNS(ns, 'system');
+    
         if (systems.length) {
             value = this.getIdsValue(systems[0]);
             if (value.type == 'simpleValue') {
