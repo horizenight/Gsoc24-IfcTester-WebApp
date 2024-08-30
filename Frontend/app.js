@@ -537,7 +537,14 @@ class IDSFacetAdd extends HTMLElement {
     // Stub methods for other facets
   
     createPropertyFacet() { console.log('Property Facet'); }
-    createMaterialFacet() { console.log('Material Facet'); }
+    
+    createMaterialFacet() { 
+        //TODO: currently dont take care of documentation
+        this.createAndRenderFacet('material', [
+            { tag: 'value', content: 'Enter Value' }
+        ]);
+     }
+
     createPartOfFacet() { console.log('Part Of Facet'); }
 }
 
@@ -1163,6 +1170,25 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
     }
+
+    processMaterialValue(values,parameters){
+        if (values.length) {
+            let value = this.getIdsValue(values[0]);
+            if (value.type == 'simpleValue') {
+                parameters.type = '<ids-param>' + value.content + '</ids-param>';
+            } else if (value.type == 'pattern') {
+                parameters.pattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            } else if (value.type == 'enumeration') {
+                parameters.typeEnumeration = `<ids-param>${value.content}</ids-param>`;
+            }
+            else if (value.type === 'bounds') {
+                parameters.bounds = this.processBoundsValue(value, parameters);
+            } else if (value.type === 'length') {
+                // TODO: not implemented
+            }
+            this.params.push(value.param);
+        }
+    }
     processBoundsValue(value, parameters) {
         let minBoundsDropdowns = '';
         let minBoundsValues = '';
@@ -1451,36 +1477,36 @@ class IDSFacet extends HTMLElement {
     loadMaterial() {
         if (this.type == 'applicability') {
             var templates = [
-                'All data with a {value} material',
-                'All data with a material of either {valueEnumeration}',
                 'All data with a material',
+
+                'Entities having Material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
+
+                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either {typeEnumeration}',
+
+                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+                
             ];
         } else if (this.type == 'requirement') {
             var templates = [
-                'Shall shall have a material of {value}',
-                'Shall have a material of either {valueEnumeration}',
                 'Shall have a material',
+
+                'Entities having Material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
+
+                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either {typeEnumeration}',
+
+                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+
+                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+               
             ];
         }
 
-        var parameters = {};
+        let parameters = {};
 
-        var value;
-        var values = this.idsElement.getElementsByTagNameNS(ns, 'value');
-        if (values.length) {
-            value = this.getIdsValue(values[0]);
-            if (value.type == 'simpleValue') {
-                parameters.value = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'pattern') {
-                parameters.valuePattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'enumeration') {
-                parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            }
-        }
-
+        let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
+        this.processMaterialValue(values, parameters);
 
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
