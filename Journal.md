@@ -30,3 +30,19 @@
 - Complete `Attribute Facet`
 - Complete `Classification facet`
 
+
+## Journal Entry - [28 Aug 2024]
+
+### Plan
+- Completed `Attribute Facet`
+
+### Difficulties
+None made the code modular to take care of resusability
+
+### Accomplishment
+- Material Facet is addded Succesfully
+
+### Next Plan
+- Complete `Material facet`
+- Complete `Classification facet`
+
