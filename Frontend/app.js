@@ -516,7 +516,12 @@ class IDSFacetAdd extends HTMLElement {
         ]);
     }
 
-    createClassificationFacet() { console.log('Classification Facet'); }
+    createClassificationFacet() { 
+        this.createAndRenderFacet('classification', [
+            { tag: 'system', content: 'Enter system' },
+            { tag: 'value', content: 'Enter Value' }
+        ]);
+     }
 
     createAndRenderFacet(facetTagName, elements) {
         const container = this.closest('ids-container');
@@ -530,7 +535,6 @@ class IDSFacetAdd extends HTMLElement {
 
         const facet = this.createFacetElement(container, facetTagName, facetElements);
         facets.idsElement.append(facet);
-
         specs.render();
     }
 
@@ -568,7 +572,7 @@ class IDSFacetDropdown extends HTMLElement {
             { value: 'bounds', text: 'has value' },
             { value: 'hasLength', text: 'has length' },
         ];
-
+        //TODO : take care of the optional types 
         this.shadowRoot.innerHTML = `
             <style>
                 select {
@@ -597,7 +601,8 @@ class IDSFacetDropdown extends HTMLElement {
         const handlers = {
             'name': this.handleNameChange,
             'predefinedType': this.handlePredefinedTypeChange,
-            'value': this.handleValueChange
+            'value': this.handleValueChange,
+            'system':this.handelSystemChange,
         };
 
         const handler = handlers[target];
@@ -639,6 +644,15 @@ class IDSFacetDropdown extends HTMLElement {
         ])
     }
 
+    handelSystemChange(value){
+        this.updateFacetElement('system',value,[
+            { value: 'type', elements: () => [this.createSimpleValueElement('Enter System')] },
+            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter System1', 'Enter System2']) },
+            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+            { value: 'bounds', elements: () => this.createBoundsElement() }
+        ])
+    }
+
     updateFacetElement(tagName, value, options) {
         const container = this.closest('ids-container');
         const specs = this.closest('ids-specs');
@@ -655,9 +669,9 @@ class IDSFacetDropdown extends HTMLElement {
             element = this.createFacetElement(container, tagName, option.elements());
             idsElement.appendChild(element);
             facet.idsElement = idsElement;
-            console.log('every update',idsElement)
             specs.render();
         }
+        console.log('updated idsElement',idsElement)
     }
 
     createFacetElement(container, tagName, childElements) {
@@ -764,17 +778,12 @@ class IDSFacetBoundsDropdown extends HTMLElement {
 
     addEventListeners() {
         this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
-            console.log(e.target.value)
             let container = this.closest('ids-container');
             let specs = this.closest('ids-specs')
-            console.log('specs', specs)
             let facet = this.closest('ids-facet')
             let idsElement = facet.idsElement;
             let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
-            console.log('predefinedType', predefinedType)
             let restriction = predefinedType.getElementsByTagNameNS(xs, 'restriction')[0];
-            console.log('restrictions', restriction)
-            console.log(idsElement)
 
             if (e.target.value == 'minInclusive') {
                 let minInclusive = predefinedType.getElementsByTagNameNS(xs, 'minInclusive')[0];
@@ -792,7 +801,6 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 minInclusive.setAttribute('value', 'Enter Value');
                 restriction.appendChild(minInclusive)
 
-                console.log(idsElement)
                 facet.idsElement = idsElement;
                 specs.render();
             }
@@ -811,7 +819,6 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 minExclusive.setAttribute('value', 'Enter Value');
                 restriction.appendChild(minExclusive)
 
-                console.log(idsElement)
                 facet.idsElement = idsElement;
                 specs.render();
             }
@@ -831,7 +838,6 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 maxInclusive.setAttribute('value', 'Enter Value');
                 restriction.appendChild(maxInclusive)
 
-                console.log(idsElement)
                 facet.idsElement = idsElement;
                 specs.render();
             }
@@ -850,7 +856,6 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 maxExclusive.setAttribute('value', 'Enter Value');
                 restriction.appendChild(maxExclusive)
 
-                console.log(idsElement)
                 facet.idsElement = idsElement;
                 specs.render();
             }
@@ -911,7 +916,6 @@ class IDSFacet extends HTMLElement {
     }
 
     renderTemplate(templates, parameters) {
-        console.log('params', parameters)
         for (let i = 0; i < templates.length; i++) {
             let hasKeys = true;
             for (let key in parameters) {
@@ -1171,6 +1175,45 @@ class IDSFacet extends HTMLElement {
         }
     }
 
+    processClassificationSystemNameValue(value,parameters){
+        if (value.type === 'simpleValue') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.system = `<ids-param filter="attributeName">${content}</ids-param>`;
+            this.params.push(value.param);
+        } else if (value.type === 'enumeration') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.systemEnumeration = `<ids-param ilter="attributeName">${content}</ids-param>`;
+            this.params.push(value.param);
+        }
+        else if (value.type === 'pattern') {
+            parameters.systemPattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            this.params.push(value.param);
+        }
+        else if (value.type === 'bounds') {
+            parameters.systemBounds = this.processBoundsValue(value, parameters);
+            this.params.push(value.param);
+        }
+    }
+
+    processClassificationSystemValue(values,parameters){
+        if (values.length) {
+            let value = this.getIdsValue(values[0]);
+            if (value.type == 'simpleValue') {
+                parameters.value = '<ids-param>' + value.content + '</ids-param>';
+            } else if (value.type == 'pattern') {
+                parameters.valuePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            } else if (value.type == 'enumeration') {
+                parameters.valueEnumeration = `<ids-param>${value.content}</ids-param>`;
+            }
+            else if (value.type === 'bounds') {
+                parameters.valueBounds = this.processBoundsValue(value, parameters);
+            } else if (value.type === 'length') {
+                // TODO: not implemented
+            }
+            this.params.push(value.param);
+        }
+    }
+
     processMaterialValue(values,parameters){
         if (values.length) {
             let value = this.getIdsValue(values[0]);
@@ -1372,48 +1415,130 @@ class IDSFacet extends HTMLElement {
     }
 
     loadClassification() {
+        let templates;
         if (this.type == 'applicability') {
-            var templates = [
-                'Data classified using {system}',
-                'Data classified as {reference}',
-                'Data classified following the convention of {referencePattern}',
-                'Data having a {system} reference of {reference}',
-                'Data having a {system} reference following the convention of {referencePattern}',
+            templates = [
+                
+                'Any classified element',
+                //system
+                'Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system}',
+
+                'Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration}',
+
+                'Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {systemPattern}',
+
+                'Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds}',
+                //Reference Value
+                'Any entity with a classification reference that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown> {value}',
+                'Any entity with a classification reference that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+                'Any entity with a classification reference that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                'Any entity with a classification reference that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                //System and Value 
+                // system type and combinations
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                //system type Enumeration and combinations
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                //system type pattern and combinations
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                //system type bounds and combinations
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
             ];
         } else if (this.type == 'requirement') {
-            var templates = [
-                'Shall be classified using {system}',
-                'Shall be classified as {reference}',
-                'Shall be classified following the convention of {referencePattern}',
-                'Shall have a {system} reference of {reference}',
-                'Shall have a {system} reference following the convention of {referencePattern}',
+            templates = [
+                'The entity must be classified',
+                  //system
+                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system}',
+
+                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration}',
+  
+                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {systemPattern}',
+  
+                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds}',
+
+                  //Reference Value
+                'The entity with a classification reference that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown> {value}',
+                'The entity with a classification reference that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+                'The entity with a classification reference that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                'The entity with a classification reference that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                 //System and Value 
+                // system type and combinations
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                //system type Enumeration and combinations
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                //system type pattern and combinations
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
+
+                //system type bounds and combinations
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
+
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
+                
+                'The element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
             ];
         }
 
-        var parameters = {};
+        let parameters = {};
 
-        var value;
-        var systems = this.idsElement.getElementsByTagNameNS(ns, 'system');
-    
+   
+        let systems = this.idsElement.getElementsByTagNameNS(ns, 'system');
         if (systems.length) {
-            value = this.getIdsValue(systems[0]);
-            if (value.type == 'simpleValue') {
-                parameters.system = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            }
+            let systemValue = this.getIdsValue(systems[0]);
+            this.processClassificationSystemNameValue(systemValue,parameters)
         }
-        var references = this.idsElement.getElementsByTagNameNS(ns, 'value');
-        if (references.length) {
-            value = this.getIdsValue(references[0]);
-            if (value.type == 'simpleValue') {
-                parameters.reference = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'pattern') {
-                parameters.referencePattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            }
-        }
-
+        let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
+        this.processClassificationSystemValue(values,parameters);
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
 
@@ -1548,7 +1673,6 @@ class IDSFacet extends HTMLElement {
         }
 
         // TODO: getIdsValue : doesnt take the length restriction into account 
-        console.log('restriciton', restriction)
 
         let minInclusive = restriction.getElementsByTagNameNS(xs, 'minInclusive');
         let maxInclusive = restriction.getElementsByTagNameNS(xs, 'maxInclusive');
@@ -1581,7 +1705,6 @@ class IDSFacet extends HTMLElement {
         }
 
         if (params.minInclusive || params.maxInclusive || params.minExclusive || params.maxExclusive) {
-            console.log('params', params);
             return {
                 type: 'bounds',
                 param: params,
@@ -1636,7 +1759,6 @@ class IDSParam extends HTMLElement {
         } else if (this.filter == 'attributeName' || this.filter == 'propertyName') {
             this.idsElement.textContent = this.textContent.replace(/\s+/g, '');
         } else if (this.filter == 'typeEnumertationName') {
-            console.log(this.idsElement.textContent)
         }
         else {
             this.idsElement.textContent = this.textContent;
@@ -1878,7 +2000,6 @@ class IDSLoader extends HTMLElement {
         idsFilename.innerHTML = filename
 
         let file = this.files[0]
-        console.log(file)
         let formData = new FormData();
         formData.append('ids_file', file);
 
