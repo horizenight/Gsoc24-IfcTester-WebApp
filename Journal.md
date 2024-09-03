@@ -46,3 +46,54 @@ None made the code modular to take care of resusability
 - Complete `Material facet`
 - Complete `Classification facet`
 
+## Journal Entry - [29 Aug 2024]
+
+### Plan
+- Completed `Material facet`
+- Completed `Classification facet`
+
+### Difficulties
+None made the code modular to take care of resusability
+
+### Accomplishment
+- Material Facet is addded Succesfully
+
+### Next Plan
+- Complete `PartOf`
+- Complete `Propoerty`
+
+# Journal Entry -[30 Aug 2024]
+# Journal Entry -[31 Aug 2024]
+# Journal Entry -[1st Sept 2024]
+### Plan
+- Completed `PartOf`
+### Difficulties
+- The PartOf Facet includes Entity Facet inside therefore existing parsing method was not able to modify the inside of entity 
+Thefore breaking the already implemented flow  
+
+### Next Plan
+- Continue `PartOf` Facet
+
+# Journal Entry -[2nd Sept 2024]
+### Plan
+- Completed `PartOf`
+### Difficulties
+- The dropdown wasnt chaning the relation attirbute values 
+
+### Next Plan
+- Continue `PartOf` Facet
+
+
+# Journal Entry -[3rd Sept 2024]
+### Plan
+- Completed `PartOf`
+
+### Difficulties
+The templates were very large for part of facet so needed a solution
+
+### Accomplishment
+- Part Of Facet is addded Succesfully
+
+### Next Plan
+- Complete `Propoerty`
+
