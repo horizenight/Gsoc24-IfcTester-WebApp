@@ -502,6 +502,7 @@ class IDSFacetAdd extends HTMLElement {
         return simpleValue;
     }
 
+
     createEntityFacet() {
         this.createAndRenderFacet('entity', [
             { tag: 'name', content: 'Enter Name' },
@@ -516,12 +517,12 @@ class IDSFacetAdd extends HTMLElement {
         ]);
     }
 
-    createClassificationFacet() { 
+    createClassificationFacet() {
         this.createAndRenderFacet('classification', [
             { tag: 'system', content: 'Enter system' },
             { tag: 'value', content: 'Enter Value' }
         ]);
-     }
+    }
 
     createAndRenderFacet(facetTagName, elements) {
         const container = this.closest('ids-container');
@@ -536,20 +537,37 @@ class IDSFacetAdd extends HTMLElement {
         const facet = this.createFacetElement(container, facetTagName, facetElements);
         facets.idsElement.append(facet);
         specs.render();
+
+        return facet
     }
 
     // Stub methods for other facets
-  
+
     createPropertyFacet() { console.log('Property Facet'); }
-    
-    createMaterialFacet() { 
+
+    createMaterialFacet() {
         //TODO: currently dont take care of documentation
         this.createAndRenderFacet('material', [
             { tag: 'value', content: 'Enter Value' }
         ]);
-     }
+    }
 
-    createPartOfFacet() { console.log('Part Of Facet'); }
+    createPartOfFacet() {
+        const container = this.closest('ids-container');
+        const facets = this.closest('h3').nextElementSibling;
+        const specs = this.closest('ids-specs');
+        const entityFacet = this.createAndRenderFacet('entity', [
+            { tag: 'name', content: 'Enter Name' },
+            { tag: 'predefinedType', content: 'Enter Type' }
+        ]);
+
+        const partOfFacet = container.ids.createElementNS(ns, 'partOf');
+        partOfFacet.setAttribute('relation', 'IFCRELASSIGNSTOGROUP');
+        partOfFacet.appendChild(entityFacet);
+        facets.idsElement.append(partOfFacet);
+        console.log('partOfFacet', partOfFacet)
+        specs.render();
+    }
 }
 
 class IDSFacetDropdown extends HTMLElement {
@@ -564,14 +582,28 @@ class IDSFacetDropdown extends HTMLElement {
     }
 
     render() {
+        const target = this.getAttribute('target')
         const defaultOption = this.getAttribute('defaultOption') || 'type';
-        const options = [
+        let options = [
             { value: 'type', text: 'equals' },
             { value: 'typeEnumeration', text: 'is one of' },
             { value: 'matchesPattern', text: 'matches pattern' },
             { value: 'bounds', text: 'has value' },
             { value: 'hasLength', text: 'has length' },
         ];
+
+        if (target == 'relation') {
+            options = [
+                //TODO : Dropdown Values Friendly
+                { value: 'IFCRELAGGREGATES', text: 'IFCRELAGGREGATES' },
+                { value: 'IFCRELASSIGNSTOGROUP', text: 'IFCRELASSIGNSTOGROUP' },
+                { value: 'IFCRELCONTAINEDINSPATIALSTRUCTURE', text: 'IFCRELCONTAINEDINSPATIALSTRUCTURE' },
+                { value: 'IFCRELNESTS', text: 'IFCRELNESTS' },
+                { value: 'IFCRELVOIDSELEMENT', text: 'IFCRELVOIDSELEMENT ' },
+                { value: 'IFCRELFILLSELEMENT', text: 'IFCRELFILLSELEMENT ' },
+                { value: 'none', text: 'directly or indirectly part of' },
+            ];
+        }
         //TODO : take care of the optional types 
         this.shadowRoot.innerHTML = `
             <style>
@@ -602,7 +634,8 @@ class IDSFacetDropdown extends HTMLElement {
             'name': this.handleNameChange,
             'predefinedType': this.handlePredefinedTypeChange,
             'value': this.handleValueChange,
-            'system':this.handelSystemChange,
+            'system': this.handelSystemChange,
+            'relation': this.handleRelationChange,
         };
 
         const handler = handlers[target];
@@ -616,7 +649,40 @@ class IDSFacetDropdown extends HTMLElement {
             composed: true,
         }));
     }
+    handleRelationChange(value) {
+        const container = this.closest('ids-container');
+        const specs = this.closest('ids-specs');
+        const facet = this.closest('ids-facet');
+        let partOfFacet = facet.idsElement;
 
+        // Get the first 'partOf' element
+        console.log('partOf facet start ', partOfFacet)
+
+        if (partOfFacet) {
+            if (value === 'IFCRELAGGREGATES') {
+                partOfFacet.setAttribute('relation', 'IFCRELAGGREGATES');
+            } else if (value === 'IFCRELASSIGNSTOGROUP') {
+                partOfFacet.setAttribute('relation', 'IFCRELASSIGNSTOGROUP');
+            }
+            else if (value === 'IFCRELCONTAINEDINSPATIALSTRUCTURE') {
+                partOfFacet.setAttribute('relation', 'IFCRELCONTAINEDINSPATIALSTRUCTURE');
+            }
+            else if (value === 'IFCRELNESTS') {
+                partOfFacet.setAttribute('relation', 'IFCRELNESTS');
+            }
+            else if (value === 'IFCRELVOIDSELEMENT') {
+                partOfFacet.setAttribute('relation', 'IFCRELVOIDSELEMENT');
+            }
+            else if (value === 'IFCRELFILLSELEMENT') {
+                partOfFacet.setAttribute('relation', 'IFCRELFILLSELEMENT');
+            } else if (value == 'none') {
+                partOfFacet.removeAttribute('relation');
+            }
+        }
+        console.log('partOfFacet ENd ', partOfFacet)
+        facet.isdElement = partOfFacet;
+        specs.render();
+    }
     handleNameChange(value) {
         this.updateFacetElement('name', value, [
             { value: 'type', elements: () => [this.createSimpleValueElement('Enter Name')] },
@@ -635,8 +701,8 @@ class IDSFacetDropdown extends HTMLElement {
         ]);
     }
 
-    handleValueChange(value){
-        this.updateFacetElement('value',value,[
+    handleValueChange(value) {
+        this.updateFacetElement('value', value, [
             { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
             { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
             { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
@@ -644,8 +710,8 @@ class IDSFacetDropdown extends HTMLElement {
         ])
     }
 
-    handelSystemChange(value){
-        this.updateFacetElement('system',value,[
+    handelSystemChange(value) {
+        this.updateFacetElement('system', value, [
             { value: 'type', elements: () => [this.createSimpleValueElement('Enter System')] },
             { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter System1', 'Enter System2']) },
             { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
@@ -653,25 +719,67 @@ class IDSFacetDropdown extends HTMLElement {
         ])
     }
 
+
     updateFacetElement(tagName, value, options) {
         const container = this.closest('ids-container');
         const specs = this.closest('ids-specs');
         const facet = this.closest('ids-facet');
-        const idsElement = facet.idsElement;
+        let idsElement = facet.idsElement;
+        console.log('idsElement', idsElement);
 
-        let element = idsElement.getElementsByTagNameNS(ns, tagName)[0];
-        if (element) {
-            idsElement.removeChild(element);
+        let element = null;
+        let entityElement = null;
+
+        // Attempt to find the 'entity' tag within idsElement
+        entityElement = idsElement.getElementsByTagNameNS(ns, 'entity')[0];
+
+        // If 'entity' tag exists, operate within it
+        if (entityElement) {
+            try {
+                element = entityElement.getElementsByTagNameNS(ns, tagName)[0];
+                if (element) {
+                    entityElement.removeChild(element); // Remove from entity
+                    console.log('Element removed from entityElement');
+                }
+            } catch (e) {
+                console.error('Failed to remove element from entityElement:', e);
+            }
+        } else {
+            // If 'entity' tag doesn't exist, operate directly on idsElement
+            try {
+                element = idsElement.getElementsByTagNameNS(ns, tagName)[0];
+                if (element) {
+                    idsElement.removeChild(element); // Remove directly from idsElement
+                    console.log('Element removed from idsElement');
+                }
+            } catch (e) {
+                console.error('Failed to remove element from idsElement:', e);
+            }
         }
 
+        // Proceed to create and append the new element
         const option = options.find(opt => opt.value === value);
         if (option) {
             element = this.createFacetElement(container, tagName, option.elements());
-            idsElement.appendChild(element);
+
+            // Append to the appropriate parent element
+            try {
+                if (entityElement) {
+                    entityElement.appendChild(element); // Append to entity if it exists
+                    console.log('Element appended to entityElement');
+                } else {
+                    idsElement.appendChild(element); // Otherwise, append directly to idsElement
+                    console.log('Element appended to idsElement');
+                }
+            } catch (e) {
+                console.error('Failed to append element:', e);
+            }
+
             facet.idsElement = idsElement;
             specs.render();
         }
-        console.log('updated idsElement',idsElement)
+
+        console.log('Updated idsElement after append', idsElement);
     }
 
     createFacetElement(container, tagName, childElements) {
@@ -894,15 +1002,15 @@ class IDSFacet extends HTMLElement {
             this.loadPartOf();
         }
 
-        var paramElements = this.getElementsByTagName('ids-param');
-        for (var i = 0; i < paramElements.length; i++) {
+        let paramElements = this.getElementsByTagName('ids-param');
+        for (let i = 0; i < paramElements.length; i++) {
             paramElements[i].load(this.params[i]);
         }
     }
 
     showResults(requirement) {
-        var idsResultElements = this.parentElement.getElementsByTagName('ids-result');
-        for (var i = 0; i < idsResultElements.length; i++) {
+        let idsResultElements = this.parentElement.getElementsByTagName('ids-result');
+        for (let i = 0; i < idsResultElements.length; i++) {
             if (!idsResultElements[i].classList.contains('hidden')) {
                 idsResultElements[i].classList.add('hidden');
             }
@@ -919,30 +1027,11 @@ class IDSFacet extends HTMLElement {
         for (let i = 0; i < templates.length; i++) {
             let hasKeys = true;
             for (let key in parameters) {
-
                 if (templates[i].indexOf('{' + key + '}') === -1) {
                     hasKeys = false;
                     break;
                 } else {
                     templates[i] = templates[i].replace('{' + key + '}', parameters[key]);
-
-                    let defaultOption;
-
-                    if (key == 'type') {
-                        defaultOption = 'type';
-                    } else if (key == 'typeEnumeration') {
-                        defaultOption = 'typeEnumeration';
-                    } else if (key == 'matchesPattern') {
-                        defaultOption = 'matchesPattern';
-                    } else if (key == 'bounds') {
-                        defaultOption = 'bounds';
-                    }
-                    if (defaultOption) {
-                        templates[i] = templates[i].replace(
-                            '<ids-facet-dropdown></ids-facet-dropdown>',
-                            `<ids-facet-dropdown defaultOption="${defaultOption}"></ids-facet-dropdown>`
-                        );
-                    }
                 }
             }
 
@@ -1071,12 +1160,40 @@ class IDSFacet extends HTMLElement {
         this.parseEntityName(this.idsElement, parameters);
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
+    parseRelation(idsElement, parameters) {
+
+        let value = this.idsElement.attributes['relation']
+
+        if (value) {
+            if (value.value == 'IFCRELAGGREGATES') {
+                console.log('here')
+                parameters.relationIFCRELAGGREGATES = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+            }
+            else if (value.value === 'IFCRELASSIGNSTOGROUP') {
+                parameters.relationIFCRELASSIGNSTOGROUP = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+            }
+            else if (value.value === 'IFCRELCONTAINEDINSPATIALSTRUCTURE') {
+                parameters.relationIFCRELCONTAINEDINSPATIALSTRUCTURE = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+            }
+            else if (value.value === 'IFCRELNESTS') {
+                parameters.relationIFCRELNESTS = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+            }
+            else if (value.value === 'IFCRELVOIDSELEMENT') {
+                parameters.relationIFCRELVOIDSELEMENT = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+            }
+            else if (value.value === 'IFCRELFILLSELEMENT') {
+                parameters.relationIFCRELFILLSELEMENT = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+            }
+        }
+        else {
+            parameters.relationNone = '<ids-param>' + 'none' + '</ids-param>';
+        }
+    }
 
     parseEntityName(idsElement, parameters) {
 
         let name = this.idsElement.getElementsByTagNameNS(ns, 'name')[0];
         let nameValue = this.getIdsValue(name);
-
 
         this.processEntityNameValue(nameValue, parameters);
 
@@ -1175,7 +1292,7 @@ class IDSFacet extends HTMLElement {
         }
     }
 
-    processClassificationSystemNameValue(value,parameters){
+    processClassificationSystemNameValue(value, parameters) {
         if (value.type === 'simpleValue') {
             let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
             parameters.system = `<ids-param filter="attributeName">${content}</ids-param>`;
@@ -1195,7 +1312,7 @@ class IDSFacet extends HTMLElement {
         }
     }
 
-    processClassificationSystemValue(values,parameters){
+    processClassificationSystemValue(values, parameters) {
         if (values.length) {
             let value = this.getIdsValue(values[0]);
             if (value.type == 'simpleValue') {
@@ -1214,7 +1331,7 @@ class IDSFacet extends HTMLElement {
         }
     }
 
-    processMaterialValue(values,parameters){
+    processMaterialValue(values, parameters) {
         if (values.length) {
             let value = this.getIdsValue(values[0]);
             if (value.type == 'simpleValue') {
@@ -1290,7 +1407,7 @@ class IDSFacet extends HTMLElement {
         if (value.type == 'simpleValue') {
             parameters.name = '<ids-param filter="attributeName">' + this.sentence(value.content) + '</ids-param>';
             this.params.push(value.param);
-        
+
         } else if (value.type === 'enumeration') {
             let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
             parameters.nameTypeEnumeration = `<ids-param filter="attributeName"">${content}</ids-param>`;
@@ -1312,102 +1429,102 @@ class IDSFacet extends HTMLElement {
             templates = [
                 // type and Combinations
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-            
+
                 //typeEnumeration and Combinations 
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-            
+
                 //namePattern and Combinations 
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-            
+
                 // nameBounds and Combination 
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
             ];
         } else if (this.type == 'requirement') {
             templates = [
                 // type and Combinations
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name"></ids-facet-dropdown> {name} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-            
+
                 //typeEnumeration and Combinations 
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="typeEnumeration"></ids-facet-dropdown> {nameTypeEnumeration} and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-            
+
                 //namePattern and Combinations 
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="matchesPattern"></ids-facet-dropdown> {namePattern} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-            
+
                 // nameBounds and Combination 
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="type" ></ids-facet-dropdown>{type}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either{typeEnumeration}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
-            
+
                 'Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="bounds"></ids-facet-dropdown> {nameBounds} data and value that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>{bounds}',
             ];
         }
 
         let parameters = {};
-    
+
         let name = this.idsElement.getElementsByTagNameNS(ns, 'name')[0];
         let nameValue = this.getIdsValue(name);
         this.processAttributeNameValue(nameValue, parameters);
-        
+
         let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
         this.processAttributeValue(values, parameters);
 
@@ -1418,7 +1535,7 @@ class IDSFacet extends HTMLElement {
         let templates;
         if (this.type == 'applicability') {
             templates = [
-                
+
                 'Any classified element',
                 //system
                 'Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system}',
@@ -1441,7 +1558,7 @@ class IDSFacet extends HTMLElement {
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
                 //system type Enumeration and combinations
@@ -1450,7 +1567,7 @@ class IDSFacet extends HTMLElement {
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
                 //system type pattern and combinations
@@ -1459,7 +1576,7 @@ class IDSFacet extends HTMLElement {
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
                 //system type bounds and combinations
@@ -1468,36 +1585,36 @@ class IDSFacet extends HTMLElement {
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'Any element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
             ];
         } else if (this.type == 'requirement') {
             templates = [
                 'The entity must be classified',
-                  //system
-                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system}',
+                //system
+                'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system}',
 
-                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration}',
-  
-                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {systemPattern}',
-  
-                  'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds}',
+                'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration}',
 
-                  //Reference Value
+                'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {systemPattern}',
+
+                'The entity classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds}',
+
+                //Reference Value
                 'The entity with a classification reference that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown> {value}',
                 'The entity with a classification reference that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
                 'The entity with a classification reference that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
                 'The entity with a classification reference that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
-                 //System and Value 
+                //System and Value 
                 // system type and combinations
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown>{value}',
 
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="type"></ids-facet-dropdown> {system} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
                 //system type Enumeration and combinations
@@ -1506,7 +1623,7 @@ class IDSFacet extends HTMLElement {
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="typeEnumeration"></ids-facet-dropdown> {systemEnumeration} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
                 //system type pattern and combinations
@@ -1515,7 +1632,7 @@ class IDSFacet extends HTMLElement {
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
 
                 //system type bounds and combinations
@@ -1524,21 +1641,21 @@ class IDSFacet extends HTMLElement {
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> {valueEnumeration}',
 
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {valuePattern}',
-                
+
                 'The element classified using system that <ids-facet-dropdown target="system" defaultoption="bounds"></ids-facet-dropdown> {systemBounds} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown> {valueBounds}',
             ];
         }
 
         let parameters = {};
 
-   
+
         let systems = this.idsElement.getElementsByTagNameNS(ns, 'system');
         if (systems.length) {
             let systemValue = this.getIdsValue(systems[0]);
-            this.processClassificationSystemNameValue(systemValue,parameters)
+            this.processClassificationSystemNameValue(systemValue, parameters)
         }
         let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
-        this.processClassificationSystemValue(values,parameters);
+        this.processClassificationSystemValue(values, parameters);
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
 
@@ -1600,8 +1717,9 @@ class IDSFacet extends HTMLElement {
     }
 
     loadMaterial() {
+        let templates;
         if (this.type == 'applicability') {
-            var templates = [
+            templates = [
                 'All data with a material',
 
                 'Entities having Material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
@@ -1611,10 +1729,10 @@ class IDSFacet extends HTMLElement {
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
 
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-                
+
             ];
         } else if (this.type == 'requirement') {
-            var templates = [
+            templates = [
                 'Shall have a material',
 
                 'Entities having Material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
@@ -1624,7 +1742,7 @@ class IDSFacet extends HTMLElement {
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
 
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-               
+
             ];
         }
 
@@ -1637,17 +1755,79 @@ class IDSFacet extends HTMLElement {
     }
 
     loadPartOf() {
-        var templates = [
-            'Must be part of a {relation} relationship',
-            'Must be part of a {name} with a {relation} relationship',
-            'Must be part of a {name} of type {type} with a {relation} relationship',
-        ]
+        let templates;
+        //TODO : Modernise all templates
+        const relations = [
+            ['IFCRELAGGREGATES', 'relationIFCRELAGGREGATES'],
+            ['IFCRELASSIGNSTOGROUP', 'relationIFCRELASSIGNSTOGROUP'],
+            ['IFCRELCONTAINEDINSPATIALSTRUCTURE', 'relationIFCRELCONTAINEDINSPATIALSTRUCTURE'],
+            ['IFCRELNESTS', 'relationIFCRELNESTS'],
+            ['IFCRELVOIDSELEMENT', 'relationIFCRELVOIDSELEMENT'],
+            ['IFCRELFILLSELEMENT', 'relationIFCRELFILLSELEMENT'],
+            ['none', 'relationNone']
+        ];
+        
+        const names = [
+            ['type', 'name'],
+            ['typeEnumeration', 'nameTypeEnumeration'],
+            ['matchesPattern', 'namePattern'],
+            ['bounds', 'nameBounds'],
+            ['hasLength', 'nameLength']
+        ];
+        
+        const predefinedTypes = [
+            ['type', 'type'],
+            ['typeEnumeration', 'typeEnumeration'],
+            ['matchesPattern', 'pattern'],
+            ['bounds', 'bounds'],
+            ['hasLength', 'length']
+        ];
+        if (this.type == 'applicability') {
+            templates = []
+            relations.forEach(([relation, relation_param]) => {
+                names.forEach(([name, name_param]) => {
+                        templates.push(
+                            `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        );
+                    });
+                });
 
-        var parameters = {};
+            relations.forEach(([relation, relation_param]) => {
+                names.forEach(([name, name_param]) => {
+                    predefinedTypes.forEach(([predefinedType, predefinedType_param]) => {
+                        templates.push(
+                            `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}}`
+                        );
+                    });
+                });
+            });        
 
-        document.asdf = this.idsElement;
-        parameters.relation = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+        } else if (this.type == 'requirement') {
+            templates =[];
+            relations.forEach(([relation, relation_param]) => {
+                names.forEach(([name, name_param]) => {
+                        templates.push(
+                            `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        );
+                    });
+                });
+
+            relations.forEach(([relation, relation_param]) => {
+                names.forEach(([name, name_param]) => {
+                    predefinedTypes.forEach(([predefinedType, predefinedType_param]) => {
+                        templates.push(
+                            `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}}`
+                        );
+                    });
+                });
+            });        
+
+        }
+
+        let parameters = {};
+        this.parseRelation(this.idsElement, parameters)
         this.parseEntityName(this.idsElement, parameters);
+        console.log(parameters)
 
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
@@ -2147,4 +2327,3 @@ window.customElements.define('ids-facet-instructions', IDSFacetInstructions);
 window.customElements.define('ids-param', IDSParam);
 window.customElements.define('ids-facet-dropdown', IDSFacetDropdown);
 window.customElements.define('ids-facet-bounds-dropdown', IDSFacetBoundsDropdown);
-// window.customElements.define('ids-facet-maxbounds-dropdown', IDSFacetMaxBoundsDropdown);
