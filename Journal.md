@@ -97,3 +97,22 @@ The templates were very large for part of facet so needed a solution
 ### Next Plan
 - Complete `Propoerty`
 
+
+# Journal Entry -[4th Sept 2024]
+### Plan
+- Completed `Property Facet`
+
+### Difficulties
+The challenge here was too implement a large amount of templates
+also a challenge left to tackle is: dataType in property facet should be chosen on already given values but currently left as future scope for AutoComplete Feature.
+
+### Accomplishment
+- Facet Editor Completed
+
+### Next Plan
+- Complete bunch of TODOs 
+- Priority1: edit in the <ids-param> value changes the correct and appropiate idsElement value/attribute
+- Priority2: create a new specs button 
+- Priority3: complete `hasLength`Complex Restrictions 
+- Priority4: Addition and deletion of `optional types` for eg. Predfined type is optional so it should be avaialble to remove and add as per requirement
+- Priority5: Plan other TODOs.
