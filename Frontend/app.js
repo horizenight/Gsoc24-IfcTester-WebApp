@@ -346,6 +346,7 @@ class IDSFacets extends HTMLElement {
             for (let j = 0; j < facetElements.length; j++) {
                 facetElements[j].load(facets[i]);
             }
+            //TODO : take care of documentation variable in the tag
             let facetInstructionsElements = facet.getElementsByTagName('ids-facet-instructions');
             for (let j = 0; j < facetInstructionsElements.length; j++) {
                 facetInstructionsElements[j].load(facets[i]);
@@ -543,7 +544,21 @@ class IDSFacetAdd extends HTMLElement {
 
     // Stub methods for other facets
 
-    createPropertyFacet() { console.log('Property Facet'); }
+    createPropertyFacet() {
+        const facets = this.closest('h3').nextElementSibling;
+        const specs = this.closest('ids-specs');
+        const propertyFacet = this.createAndRenderFacet('property', [
+            { tag: 'propertySet', content: 'Enter pSet' },
+            { tag: 'baseName', content: 'Enter BaseName' },
+            { tag: 'value', content: 'Enter Value' },
+        ])
+        propertyFacet.setAttribute('dataType', "IFCLABEL");
+        propertyFacet.setAttribute('instructions', "Enter Instructions");
+
+        facets.idsElement.append(propertyFacet);
+        console.log('PropertyFacet', propertyFacet)
+        specs.render();
+    }
 
     createMaterialFacet() {
         //TODO: currently dont take care of documentation
@@ -636,6 +651,8 @@ class IDSFacetDropdown extends HTMLElement {
             'value': this.handleValueChange,
             'system': this.handelSystemChange,
             'relation': this.handleRelationChange,
+            'baseName': this.handleBaseNameChange,
+            'pset': this.handlePsetNameChange,
         };
 
         const handler = handlers[target];
@@ -682,6 +699,22 @@ class IDSFacetDropdown extends HTMLElement {
         console.log('partOfFacet ENd ', partOfFacet)
         facet.isdElement = partOfFacet;
         specs.render();
+    }
+    handlePsetNameChange(value) {
+        this.updateFacetElement('propertySet', value, [
+            { value: 'type', elements: () => [this.createSimpleValueElement('Enter Name')] },
+            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
+            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+            { value: 'bounds', elements: () => this.createBoundsElement() }
+        ]);
+    }
+    handleBaseNameChange(value) {
+        this.updateFacetElement('baseName', value, [
+            { value: 'type', elements: () => [this.createSimpleValueElement('Enter Name')] },
+            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
+            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+            { value: 'bounds', elements: () => this.createBoundsElement() }
+        ]);
     }
     handleNameChange(value) {
         this.updateFacetElement('name', value, [
@@ -1189,6 +1222,13 @@ class IDSFacet extends HTMLElement {
             parameters.relationNone = '<ids-param>' + 'none' + '</ids-param>';
         }
     }
+    parseBaseName(idsElement, parameters) {
+        let baseName = this.idsElement.getElementsByTagNameNS(ns, 'baseName')[0]
+
+        let baseNameValue = this.getIdsValue(baseName);
+        // as same as the EnitityNameValue
+        this.processEntityNameValue(baseNameValue, parameters);
+    }
 
     parseEntityName(idsElement, parameters) {
 
@@ -1291,7 +1331,42 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
     }
+    parsePropertySet(value, parameters) {
 
+        if (value.type == 'simpleValue') {
+            parameters.psetName = '<ids-param>' + value.content + '</ids-param>';
+            this.params.push(value.param);
+        }
+        else if (value.type == 'pattern') {
+            parameters.psetPattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
+            this.params.push(value.param);
+        } else if (value.type == 'enumeration') {
+            parameters.psetEnumeration = '<ids-param>' + value.content + '</ids-param>';
+            this.params.push(value.param);
+        } else if (value.type == 'bounds') {
+            parameters.psetBounds = '<ids-param>' + value.content + '</ids-param>';
+        } else if (value.type == 'length') {
+            parameters.psetLength = '<ids-param>' + value.content + '</ids-param>';
+        }
+
+
+    }
+    parseValue(value, parameters) {
+        if (value.type == 'simpleValue') {
+            parameters.value = '<ids-param>' + value.content + '</ids-param>';
+            this.params.push(value.param);
+        } else if (value.type == 'pattern') {
+            parameters.valuePattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
+            this.params.push(value.param);
+        } else if (value.type == 'enumeration') {
+            parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
+            this.params.push(value.param);
+        } else if (value.type == 'bounds') {
+            parameters.valueBounds = '<ids-param>' + value.content + '</ids-param>';
+        } else if (value.type == 'length') {
+            parameters.valueLength = '<ids-param>' + value.content + '</ids-param>';
+        }
+    }
     processClassificationSystemNameValue(value, parameters) {
         if (value.type === 'simpleValue') {
             let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
@@ -1661,56 +1736,99 @@ class IDSFacet extends HTMLElement {
 
     loadProperty() {
         let templates;
+        const psets = [
+            ['type', 'psetName'],
+            ['typeEnumeration', 'psetEnumeration'],
+            ['matchesPattern', 'psetPattern'],
+            ['bounds', 'psetBounds'],
+            ['hasLength', 'psetLength']
+        ];
+        const names = [
+            ['type', 'name'],
+            ['typeEnumeration', 'nameTypeEnumeration'],
+            ['matchesPattern', 'namePattern'],
+            ['bounds', 'nameBounds'],
+            ['hasLength', 'nameLength']
+        ];
+
+        const propertyValues = [
+            ['type', 'value'],
+            ['typeEnumeration', 'valueEnumeration'],
+            ['matchesPattern', 'valuePattern'],
+            ['bounds', 'valueBounds'],
+            ['hasLength', 'valueLength']
+        ];
+
         if (this.type == 'applicability') {
-            templates = [
-                'Elements with {name} data in the dataset {pset}',
-                'Elements with {name} data of {value} in the dataset {pset}',
-                'Elements with {name} data following the convention of {valuePattern} in the dataset {pset}',
-                'Elements with {name} data with either {valueEnumeration} in the dataset {pset}',
-                '{name} data shall be {valueBounds} in the dataset {pset}'
-            ];
+            templates = [];
+            psets.forEach(([pset, pset_param]) => {
+                names.forEach(([name, name_param]) => {
+                    propertyValues.forEach(([value, value_param]) => {
+                        // both absent
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        );
+                        // dataType Present Value not
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}`
+                        );
+                        //dataType not present value present
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        );
+
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        );
+                    });
+                });
+            });
+
         } else if (this.type == 'requirement') {
-            templates = [
-                '{name} data shall be provided in the dataset {pset}',
-                '{name} data shall be {value} and in the dataset {pset}',
-                '{name} data shall follow the convention of {valuePattern} and in the dataset {pset}',
-                '{name} data shall be one of {valueEnumeration} and in the dataset {pset}',
-                '{name} data shall be {valueBounds} in the dataset {pset}'
-            ];
+            templates = [];
+            psets.forEach(([pset, pset_param]) => {
+                names.forEach(([name, name_param]) => {
+                    propertyValues.forEach(([value, value_param]) => {
+                        // both absent
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        );
+                        // dataType Present Value not
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}`
+                        );
+                        //dataType not present value present
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        );
+
+                        templates.push(
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        );
+                    });
+                });
+            });
         }
 
         let parameters = {};
-        let name = this.idsElement.getElementsByTagNameNS(ns, 'baseName')[0];
-        let value = this.getIdsValue(name);
-        if (value.type == 'simpleValue') {
-            parameters.name = '<ids-param filter="propertyName">' + this.sentence(value.content) + '</ids-param>';
-            this.params.push(value.param);
-        }
+        console.log(templates.length)
+
+        this.parseBaseName(this.idsElement, parameters)
 
         let values = this.idsElement.getElementsByTagNameNS(ns, 'value');
         if (values.length) {
-            value = this.getIdsValue(values[0]);
-            if (value.type == 'simpleValue') {
-                parameters.value = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'pattern') {
-                parameters.valuePattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'enumeration') {
-                parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
-                this.params.push(value.param);
-            } else if (value.type == 'bounds') {
-                parameters.valueBounds = '<ids-param>' + value.content + '</ids-param>';
-            } else if (value.type == 'length') {
-                parameters.valueLength = '<ids-param>' + value.content + '</ids-param>';
-            }
+            let value = this.getIdsValue(values[0]);
+            this.parseValue(value, parameters);
         }
 
+
         let propertySet = this.idsElement.getElementsByTagNameNS(ns, 'propertySet')[0];
-        value = this.getIdsValue(propertySet);
-        if (value.type == 'simpleValue') {
-            parameters.pset = '<ids-param>' + value.content + '</ids-param>';
-            this.params.push(value.param);
+        let value = this.getIdsValue(propertySet);
+        this.parsePropertySet(value, parameters)
+
+        let dataTypevalue = this.idsElement.attributes['dataType']
+        if (dataTypevalue) {
+            parameters.dataType = '<ids-param>' + dataTypevalue.value + '</ids-param>';
         }
 
         this.innerHTML = this.renderTemplate(templates, parameters);
@@ -1722,7 +1840,7 @@ class IDSFacet extends HTMLElement {
             templates = [
                 'All data with a material',
 
-                'Entities having Material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
+                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown> {type} data',
 
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either {typeEnumeration}',
 
@@ -1766,7 +1884,7 @@ class IDSFacet extends HTMLElement {
             ['IFCRELFILLSELEMENT', 'relationIFCRELFILLSELEMENT'],
             ['none', 'relationNone']
         ];
-        
+
         const names = [
             ['type', 'name'],
             ['typeEnumeration', 'nameTypeEnumeration'],
@@ -1774,7 +1892,7 @@ class IDSFacet extends HTMLElement {
             ['bounds', 'nameBounds'],
             ['hasLength', 'nameLength']
         ];
-        
+
         const predefinedTypes = [
             ['type', 'type'],
             ['typeEnumeration', 'typeEnumeration'],
@@ -1786,11 +1904,11 @@ class IDSFacet extends HTMLElement {
             templates = []
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
-                        templates.push(
-                            `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
-                        );
-                    });
+                    templates.push(
+                        `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                    );
                 });
+            });
 
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
@@ -1800,17 +1918,17 @@ class IDSFacet extends HTMLElement {
                         );
                     });
                 });
-            });        
+            });
 
         } else if (this.type == 'requirement') {
-            templates =[];
+            templates = [];
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
-                        templates.push(
-                            `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
-                        );
-                    });
+                    templates.push(
+                        `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                    );
                 });
+            });
 
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
@@ -1820,7 +1938,7 @@ class IDSFacet extends HTMLElement {
                         );
                     });
                 });
-            });        
+            });
 
         }
 
