@@ -13,17 +13,65 @@ class IDSNew extends HTMLElement {
     click(e) {
         let ifcTester = this.closest('ifc-tester');
         // Check if there's already a .ids div present
+        console.log(ifcTester)
         if (!ifcTester.querySelector('.ids')) {
+            
             let template = ifcTester.getElementsByTagName('template')[0];
             if (template) {
                 ifcTester.appendChild(template.content.cloneNode(true));
                 feather.replace();
             }
+            let container = ifcTester.getElementsByTagName('ids-container')[0]
+            // Initialize the ids document directly
+            let idsFilename = container.querySelector('ids-filename')
+            idsFilename.innerHTML = "Template"
+            if (!container.ids) {
+                container.ids = this.createDefaultIdsDocument();
+                this.loadSpecs(container);
+            }
+            console.log(container.ids)
         } else {
             let alertElement = document.querySelector('ids-alert');
             alertElement.showAlert('Error: New Spec not allowed,' + 'already a ids spec present kindly close it.', 'error');
         }
     }
+
+    createDefaultIdsDocument() {
+        let parser = new DOMParser();
+        let date = new Date().toISOString().split('T')[0];
+        let xmlString = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <ids:ids xmlns:ids="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+            <ids:info>
+                <ids:title>My information requirements</ids:title>
+                <ids:author>john@doe.com</ids:author>
+                <ids:copyright>Company Inc.</ids:copyright>
+                <ids:version>1.0.0</ids:version>
+                <ids:description>An example suite of OpenBIM requirements for data quality audits</ids:description>
+                <ids:date>${date}</ids:date>
+                <ids:milestone>Construction</ids:milestone>
+            </ids:info>
+            <ids:specifications>
+                <ids:specification>
+                    <ids:applicabilty>
+                    </ids:applicabilty>
+                    <ids:requirement>
+                    </ids:requirement>
+                </ids:specification>
+            </ids:specifications>
+        </ids:ids>`;
+        return parser.parseFromString(xmlString, "text/xml");
+
+}
+
+loadSpecs(container) {
+    container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
+    let specsElements = container.getElementsByTagName('ids-specs');
+    for (let i = 0; i < specsElements.length; i++) {
+        let specs = specsElements[i];
+        console.log(specs)
+        specs.load(container.ids.getElementsByTagNameNS(ns, 'specifications')[0]);
+    }
+}
 }
 
 class IDSClose extends HTMLElement {
@@ -51,6 +99,7 @@ class IDSContainer extends HTMLElement {
 class IDSInfo extends HTMLElement {
     load(idsElement) {
         this.idsElement = idsElement;
+        console.log(this.idsElement)
         let idsInfoElements = this.getElementsByTagName('ids-info-element');
         for (let i = 0; i < idsInfoElements.length; i++) {
             let name = idsInfoElements[i].attributes['name'].value;
@@ -164,9 +213,10 @@ class IDSSpecMove extends HTMLElement {
         if (this.direction == "up") {
             this.idsElement.parentElement.insertBefore(this.idsElement, this.idsElement.previousElementSibling);
         } else if (this.direction == "down") {
-            var nextNextSibling = this.idsElement.nextElementSibling.nextElementSibling;
+            let nextNextSibling = this.idsElement.nextElementSibling.nextElementSibling;
             this.idsElement.parentElement.insertBefore(this.idsElement, nextNextSibling);
         }
+        console.log('this',this.idsElement.parentElement)
         this.idsElement.parentElement.dispatchEvent(new Event('ids-spec-move'));
     }
 }
@@ -179,8 +229,10 @@ class IDSSpecAdd extends HTMLElement {
     click(e) {
         let specs = this.closest('ids-specs');
         let spec = this.closest('ids-spec');
-
+        console.log(specs)
         let container = this.closest('ids-container');
+        console.log('container',container)
+        //ids is not set here 
         let newSpec = container.ids.createElementNS(ns, "specification");
         let newApplicability = container.ids.createElementNS(ns, "applicability");
         let newRequirements = container.ids.createElementNS(ns, "requirements");
@@ -189,6 +241,7 @@ class IDSSpecAdd extends HTMLElement {
         specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
         newSpec.appendChild(newApplicability);
         newSpec.appendChild(newRequirements);
+        console.log(newSpec)
         specs.idsElement.dispatchEvent(new Event('ids-spec-add'));
     }
 }
@@ -2042,7 +2095,7 @@ class IDSFacet extends HTMLElement {
 class IDSParam extends HTMLElement {
     connectedCallback() {
         this.contentEditable = true;
-        this.addEventListener('input', this.input);
+        this.addEventListener('input', this.input.bind(this));  // Bind 'this' to the correct context
         this.filter = this.attributes['filter'] ? this.attributes['filter'].value : null;
     }
 
@@ -2051,19 +2104,26 @@ class IDSParam extends HTMLElement {
     }
 
     input(e) {
+        // Log the current input value before any transformations
+
         if (this.filter == 'entityName') {
             this.idsElement.textContent = 'IFC' + this.textContent.toUpperCase();
-
         } else if (this.filter == 'attributeName' || this.filter == 'propertyName') {
             this.idsElement.textContent = this.textContent.replace(/\s+/g, '');
         } else if (this.filter == 'typeEnumertationName') {
+            // Handle specific case if needed
+        }else if(this.filter='pattern'){
+
+
         }
-        else {
+         else {
             this.idsElement.textContent = this.textContent;
         }
 
+        // Log the final value after the transformation is applied
     }
 }
+
 
 class IDSSpecs extends HTMLElement {
     load(idsElement) {
@@ -2162,21 +2222,27 @@ class IDSSpec extends HTMLElement {
     load(idsElement) {
         let self = this;
         this.idsElement = idsElement;
-
         let children = this.getElementsByTagName('ids-spec-attribute');
         for (let i = 0; i < children.length; i++) {
             children[i].load(idsElement);
         }
 
         children = this.getElementsByTagName('ids-facets');
-
         for (let i = 0; i < children.length; i++) {
-            children[i].load(idsElement.getElementsByTagNameNS(ns, children[i].attributes['name'].value)[0]);
+            let nameAttr = children[i].attributes['name'].value;
+            if (nameAttr !== null) { 
+                let facetElement = idsElement.getElementsByTagNameNS(ns, nameAttr)[0];
+                if (facetElement) {
+                    children[i].load(facetElement);
+                }
+            }
         }
-
+       
         children = this.getElementsByTagName('ids-spec-move');
+        if(children.length > 0){
         for (let i = 0; i < children.length; i++) {
             children[i].load(idsElement);
+        }
         }
     }
 
