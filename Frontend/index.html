@@ -94,8 +94,17 @@
                                 <p>
                                     &copy; <ids-info-element name="copyright">Company Inc.</ids-info-element>
                                 </p>
-                            </ids-info>
+                            </ids-info>           
+                            <!-- TODO : implement <ids-spec-add> so that we can add specs without importing them -->
+                                
                             <ids-specs>
+                                <div class="divider">
+                                    <span class="controls">
+                                        <ids-spec-add>
+                                            <i data-feather="plus"></i>
+                                        </ids-spec-add>
+                                    </span>
+                                </div>
                                 <template>
                                     <ids-spec>
                                         <ids-spec-target></ids-spec-target>
