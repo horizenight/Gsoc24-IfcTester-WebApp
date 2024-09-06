@@ -15,7 +15,6 @@ class IDSNew extends HTMLElement {
         // Check if there's already a .ids div present
         console.log(ifcTester)
         if (!ifcTester.querySelector('.ids')) {
-            
             let template = ifcTester.getElementsByTagName('template')[0];
             if (template) {
                 ifcTester.appendChild(template.content.cloneNode(true));
@@ -50,28 +49,14 @@ class IDSNew extends HTMLElement {
                 <ids:date>${date}</ids:date>
                 <ids:milestone>Construction</ids:milestone>
             </ids:info>
-            <ids:specifications>
-                <ids:specification>
-                    <ids:applicabilty>
-                    </ids:applicabilty>
-                    <ids:requirement>
-                    </ids:requirement>
-                </ids:specification>
-            </ids:specifications>
         </ids:ids>`;
         return parser.parseFromString(xmlString, "text/xml");
 
-}
-
-loadSpecs(container) {
-    container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
-    let specsElements = container.getElementsByTagName('ids-specs');
-    for (let i = 0; i < specsElements.length; i++) {
-        let specs = specsElements[i];
-        console.log(specs)
-        specs.load(container.ids.getElementsByTagNameNS(ns, 'specifications')[0]);
     }
-}
+
+    loadSpecs(container) {
+        container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
+    }
 }
 
 class IDSClose extends HTMLElement {
@@ -216,33 +201,53 @@ class IDSSpecMove extends HTMLElement {
             let nextNextSibling = this.idsElement.nextElementSibling.nextElementSibling;
             this.idsElement.parentElement.insertBefore(this.idsElement, nextNextSibling);
         }
-        console.log('this',this.idsElement.parentElement)
+        console.log('this', this.idsElement.parentElement)
+        //manual render 
+        let specs = this.closest('ids-specs')
+        specs.render()
         this.idsElement.parentElement.dispatchEvent(new Event('ids-spec-move'));
     }
 }
 
 class IDSSpecAdd extends HTMLElement {
     connectedCallback() {
-        this.addEventListener('click', this.click);
+        this.addEventListener('click', this.click.bind(this));
     }
 
     click(e) {
         let specs = this.closest('ids-specs');
         let spec = this.closest('ids-spec');
-        console.log(specs)
         let container = this.closest('ids-container');
-        console.log('container',container)
-        //ids is not set here 
+
         let newSpec = container.ids.createElementNS(ns, "specification");
         let newApplicability = container.ids.createElementNS(ns, "applicability");
         let newRequirements = container.ids.createElementNS(ns, "requirements");
-
-
-        specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
         newSpec.appendChild(newApplicability);
         newSpec.appendChild(newRequirements);
-        console.log(newSpec)
-        specs.idsElement.dispatchEvent(new Event('ids-spec-add'));
+        console.log('container',container.ids)
+
+        if(specs.children.length == 2 && !spec){
+          //here we should modify the container 
+          let idsElement = container.ids.querySelector('ids');
+          let specifications = container.ids.createElementNS(ns, "specifications");
+          specifications.appendChild(newSpec)
+          idsElement.appendChild(specifications);
+          this.loadSpecs(container)
+        }else{
+            specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
+            specs.idsElement.dispatchEvent(new Event('ids-spec-add', { bubbles: true }));
+        }
+       
+        console.log('ids',container.ids)
+    }
+
+    loadSpecs(container) {
+        container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
+        let specsElements = container.getElementsByTagName('ids-specs');
+        for (let i = 0; i < specsElements.length; i++) {
+            let specs = specsElements[i];
+            specs.load(container.ids.getElementsByTagNameNS(ns, 'specifications')[0]);
+        }
     }
 }
 
@@ -587,7 +592,6 @@ class IDSFacetAdd extends HTMLElement {
             const child = this.createFacetElement(container, tag, [this.createSimpleValueElement(container, content)]);
             return child;
         });
-
         const facet = this.createFacetElement(container, facetTagName, facetElements);
         facets.idsElement.append(facet);
         specs.render();
@@ -2112,11 +2116,11 @@ class IDSParam extends HTMLElement {
             this.idsElement.textContent = this.textContent.replace(/\s+/g, '');
         } else if (this.filter == 'typeEnumertationName') {
             // Handle specific case if needed
-        }else if(this.filter='pattern'){
+        } else if (this.filter = 'pattern') {
 
 
         }
-         else {
+        else {
             this.idsElement.textContent = this.textContent;
         }
 
@@ -2130,15 +2134,20 @@ class IDSSpecs extends HTMLElement {
         let self = this;
         this.idsElement = idsElement;
         this.idsElement.addEventListener('ids-spec-remove', function () { self.render(); });
-        this.idsElement.addEventListener('ids-spec-add', function () { self.render(); });
+        this.idsElement.addEventListener('ids-spec-add', function () { console.log('ids-spec-add event triggered');
+            self.render(); });
         this.idsElement.addEventListener('ids-spec-move', function () { self.render(); });
         this.render();
     }
 
     render() {
+     
         let template = this.getElementsByTagName('template')[0];
 
         let children = [];
+        if(children.length == 1){
+            console.log("only template here")
+        }
         for (let i = 0; i < this.children.length; i++) {
             if (this.children[i] != template) {
                 children.push(this.children[i]);
@@ -2230,19 +2239,16 @@ class IDSSpec extends HTMLElement {
         children = this.getElementsByTagName('ids-facets');
         for (let i = 0; i < children.length; i++) {
             let nameAttr = children[i].attributes['name'].value;
-            if (nameAttr !== null) { 
-                let facetElement = idsElement.getElementsByTagNameNS(ns, nameAttr)[0];
-                if (facetElement) {
-                    children[i].load(facetElement);
-                }
-            }
+            let facetElement = idsElement.getElementsByTagNameNS(ns, nameAttr)[0];
+            children[i].load(facetElement);
         }
-       
+
+
         children = this.getElementsByTagName('ids-spec-move');
-        if(children.length > 0){
-        for (let i = 0; i < children.length; i++) {
-            children[i].load(idsElement);
-        }
+        if (children.length > 0) {
+            for (let i = 0; i < children.length; i++) {
+                children[i].load(idsElement);
+            }
         }
     }
 
