@@ -205,7 +205,7 @@ class IDSSpecMove extends HTMLElement {
         //manual render 
         let specs = this.closest('ids-specs')
         specs.render()
-        this.idsElement.parentElement.dispatchEvent(new Event('ids-spec-move'));
+        this.idsElement.parentElement.dispatchEvent(new Event('ids-spec-move',{ bubbles: true }));
     }
 }
 
@@ -237,7 +237,6 @@ class IDSSpecAdd extends HTMLElement {
             specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
             specs.idsElement.dispatchEvent(new Event('ids-spec-add', { bubbles: true }));
         }
-       
         console.log('ids',container.ids)
     }
 
@@ -2136,7 +2135,8 @@ class IDSSpecs extends HTMLElement {
         this.idsElement.addEventListener('ids-spec-remove', function () { self.render(); });
         this.idsElement.addEventListener('ids-spec-add', function () { console.log('ids-spec-add event triggered');
             self.render(); });
-        this.idsElement.addEventListener('ids-spec-move', function () { self.render(); });
+        this.idsElement.addEventListener('ids-spec-move', function () { console.log('ids-spec-move event triggered');
+            self.render(); });
         this.render();
     }
 
@@ -2180,7 +2180,6 @@ class IDSSpec extends HTMLElement {
         this.addEventListener('dragenter', this.dragenter);
         this.addEventListener('dragover', this.dragover);
         this.addEventListener('drop', this.drop);
-
         this.setAttribute("draggable", "true");
     }
 
@@ -2225,7 +2224,7 @@ class IDSSpec extends HTMLElement {
             draggedSpecsElement.render();
         }
 
-
+        this.idsElement.parentElement.dispatchEvent(new Event('ids-spec-move',{ bubbles: true }));
     }
 
     load(idsElement) {
