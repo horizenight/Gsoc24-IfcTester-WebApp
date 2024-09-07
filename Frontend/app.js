@@ -1148,26 +1148,26 @@ class IDSFacet extends HTMLElement {
         if (value) {
             if (value.value == 'IFCRELAGGREGATES') {
                 console.log('here')
-                parameters.relationIFCRELAGGREGATES = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+                parameters.relationIFCRELAGGREGATES = '<ids-param filter="relation">' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
             }
             else if (value.value === 'IFCRELASSIGNSTOGROUP') {
-                parameters.relationIFCRELASSIGNSTOGROUP = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+                parameters.relationIFCRELASSIGNSTOGROUP = '<ids-param filter="relation">' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
             }
             else if (value.value === 'IFCRELCONTAINEDINSPATIALSTRUCTURE') {
-                parameters.relationIFCRELCONTAINEDINSPATIALSTRUCTURE = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+                parameters.relationIFCRELCONTAINEDINSPATIALSTRUCTURE = '<ids-param filter="relation" >' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
             }
             else if (value.value === 'IFCRELNESTS') {
-                parameters.relationIFCRELNESTS = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+                parameters.relationIFCRELNESTS = '<ids-param filter="relation">' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
             }
             else if (value.value === 'IFCRELVOIDSELEMENT') {
-                parameters.relationIFCRELVOIDSELEMENT = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+                parameters.relationIFCRELVOIDSELEMENT = '<ids-param filter="relation">' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
             }
             else if (value.value === 'IFCRELFILLSELEMENT') {
-                parameters.relationIFCRELFILLSELEMENT = '<ids-param>' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
+                parameters.relationIFCRELFILLSELEMENT = '<ids-param filter="relation">' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
             }
         }
         else {
-            parameters.relationNone = '<ids-param>' + 'none' + '</ids-param>';
+            parameters.relationNone = '<ids-param filter="relation">' + 'none' + '</ids-param>';
         }
     }
     parseBaseName(idsElement, parameters) {
@@ -1213,7 +1213,7 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
-            parameters.nameLength = `<ids-param>${value.content}</ids-param>`;
+            parameters.nameLength = `<ids-param filter="length">${value.content}</ids-param>`;
             this.params.push(value.param);
         }
     }
@@ -1237,7 +1237,7 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
-            parameters.nameLength = `<ids-param>${value.content}</ids-param>`;
+            parameters.nameLength = `<ids-param filter="length">${value.content}</ids-param>`;
             this.params.push(value.param);
         }
 
@@ -1265,7 +1265,7 @@ class IDSFacet extends HTMLElement {
         } else if (value.type === 'bounds') {
             parameters.bounds = this.processBoundsValue(value, parameters);
         } else if (value.type === 'length') {
-            parameters.length = '<ids-param>' + value.content + '</ids-param>';
+            parameters.length = `<ids-param filter="length">${value.content}</ids-param>`;
         }
         this.params.push(value.param);
     }
@@ -1286,7 +1286,7 @@ class IDSFacet extends HTMLElement {
             else if (value.type === 'bounds') {
                 parameters.bounds = this.processBoundsValue(value, parameters);
             } else if (value.type === 'length') {
-                parameters.length = '<ids-param>' + value.content + '</ids-param>';
+                parameters.length = '<ids-param filter="length">' + value.content + '</ids-param>';
                 this.params.push(value.param);
             }
         }
@@ -1303,7 +1303,7 @@ class IDSFacet extends HTMLElement {
         } else if (value.type == 'bounds') {
             parameters.psetBounds = '<ids-param>' + value.content + '</ids-param>';
         } else if (value.type == 'length') {
-            parameters.psetLength = '<ids-param>' + value.content + '</ids-param>';
+            parameters.psetLength = '<ids-param filter="length">' + value.content + '</ids-param>';
         }
         this.params.push(value.param);
 
@@ -1322,7 +1322,7 @@ class IDSFacet extends HTMLElement {
         } else if (value.type == 'bounds') {
             parameters.valueBounds = '<ids-param>' + value.content + '</ids-param>';
         } else if (value.type == 'length') {
-            parameters.valueLength = '<ids-param>' + value.content + '</ids-param>';
+            parameters.valueLength = '<ids-para filter="length">' + value.content + '</ids-param>';
         }
     }
     processClassificationSystemNameValue(value, parameters) {
@@ -1340,7 +1340,7 @@ class IDSFacet extends HTMLElement {
             parameters.systemBounds = this.processBoundsValue(value, parameters);
         }
         else if (value.type === 'length') {
-            parameters.systemLength = `<ids-param >${value.content}</ids-param>`;
+            parameters.systemLength = `<ids-param filter="length">${value.content}</ids-param>`;
         }
         this.params.push(value.param);
     }
@@ -1358,7 +1358,7 @@ class IDSFacet extends HTMLElement {
             else if (value.type === 'bounds') {
                 parameters.valueBounds = this.processBoundsValue(value, parameters);
             } else if (value.type === 'length') {
-                parameters.valueLength = `<ids-param >${value.content}</ids-param>`;
+                parameters.valueLength = `<ids-param filter="length" >${value.content}</ids-param>`;
             }
             this.params.push(value.param);
         }
@@ -1377,7 +1377,7 @@ class IDSFacet extends HTMLElement {
             else if (value.type === 'bounds') {
                 parameters.bounds = this.processBoundsValue(value, parameters);
             } else if (value.type === 'length') {
-                parameters.length = `<ids-param >${value.content}</ids-param>`;
+                parameters.length = `<ids-param filter="length">${value.content}</ids-param>`;
             }
             this.params.push(value.param);
         }
@@ -1455,7 +1455,7 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
-            parameters.nameLength = `<ids-param>${value.content}</ids-param>`;
+            parameters.nameLength = `<ids-param filter="length">${value.content}</ids-param>`;
             this.params.push(value.param);
         }
     }
@@ -1771,7 +1771,7 @@ class IDSFacet extends HTMLElement {
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
 
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
-                
+
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="length"></ids-facet-dropdown>  {length}',
 
             ];
@@ -1818,7 +1818,7 @@ class IDSFacet extends HTMLElement {
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
                     templates.push(
-                        `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
                     );
                 });
             });
@@ -1827,7 +1827,7 @@ class IDSFacet extends HTMLElement {
                 names.forEach(([name, name_param]) => {
                     predefinedTypes.forEach(([predefinedType, predefinedType_param]) => {
                         templates.push(
-                            `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}}`
+                            `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown>a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}}`
                         );
                     });
                 });
@@ -1838,7 +1838,7 @@ class IDSFacet extends HTMLElement {
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
                     templates.push(
-                        `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
                     );
                 });
             });
@@ -1847,7 +1847,7 @@ class IDSFacet extends HTMLElement {
                 names.forEach(([name, name_param]) => {
                     predefinedTypes.forEach(([predefinedType, predefinedType_param]) => {
                         templates.push(
-                            `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}"></ids-facet-dropdown>{${relation_param}} a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}}`
+                            `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}}`
                         );
                     });
                 });
@@ -1958,7 +1958,7 @@ class IDSFacet extends HTMLElement {
 class IDSParam extends HTMLElement {
     connectedCallback() {
         this.contentEditable = true;
-        this.addEventListener('input', this.input.bind(this));  // Bind 'this' to the correct context
+        this.addEventListener('input', this.input.bind(this));  
         this.filter = this.attributes['filter'] ? this.attributes['filter'].value : null;
     }
 
@@ -1973,13 +1973,14 @@ class IDSParam extends HTMLElement {
             this.idsElement.textContent = 'IFC' + this.textContent.toUpperCase();
         } else if (this.filter == 'attributeName' || this.filter == 'propertyName') {
             this.idsElement.textContent = this.textContent.replace(/\s+/g, '');
-        } else if (this.filter == 'typeEnumertationName') {
-            // Handle specific case if needed
-        } else if (this.filter = 'pattern') {
-
-
-        }
+        } else if(this.filter == 'length'){
+            this.idsElement.setAttribute('value', this.textContent);
+        } 
+        else if (this.filter == 'pattern') {
+            this.idsElement.setAttribute('value', this.textContent);
+        } 
         else {
+            console.log(this.idsElement)
             this.idsElement.textContent = this.textContent;
         }
 
