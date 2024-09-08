@@ -13,7 +13,6 @@ class IDSNew extends HTMLElement {
     click(e) {
         let ifcTester = this.closest('ifc-tester');
         // Check if there's already a .ids div present
-        console.log(ifcTester)
         if (!ifcTester.querySelector('.ids')) {
             let template = ifcTester.getElementsByTagName('template')[0];
             if (template) {
@@ -28,7 +27,6 @@ class IDSNew extends HTMLElement {
                 container.ids = this.createDefaultIdsDocument();
                 this.loadSpecs(container);
             }
-            console.log(container.ids)
         } else {
             let alertElement = document.querySelector('ids-alert');
             alertElement.showAlert('Error: New Spec not allowed,' + 'already a ids spec present kindly close it.', 'error');
@@ -84,7 +82,6 @@ class IDSContainer extends HTMLElement {
 class IDSInfo extends HTMLElement {
     load(idsElement) {
         this.idsElement = idsElement;
-        console.log(this.idsElement)
         let idsInfoElements = this.getElementsByTagName('ids-info-element');
         for (let i = 0; i < idsInfoElements.length; i++) {
             let name = idsInfoElements[i].attributes['name'].value;
@@ -201,7 +198,6 @@ class IDSSpecMove extends HTMLElement {
             let nextNextSibling = this.idsElement.nextElementSibling.nextElementSibling;
             this.idsElement.parentElement.insertBefore(this.idsElement, nextNextSibling);
         }
-        console.log('this', this.idsElement.parentElement)
         //manual render 
         let specs = this.closest('ids-specs')
         specs.render()
@@ -224,7 +220,6 @@ class IDSSpecAdd extends HTMLElement {
         let newRequirements = container.ids.createElementNS(ns, "requirements");
         newSpec.appendChild(newApplicability);
         newSpec.appendChild(newRequirements);
-        console.log('container', container.ids)
 
         if (specs.children.length == 2 && !spec) {
             //here we should modify the container 
@@ -237,7 +232,6 @@ class IDSSpecAdd extends HTMLElement {
             specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
             specs.idsElement.dispatchEvent(new Event('ids-spec-add', { bubbles: true }));
         }
-        console.log('ids', container.ids)
     }
 
     loadSpecs(container) {
@@ -422,46 +416,66 @@ class IDSFacets extends HTMLElement {
 
 class IDSFacetInstructions extends HTMLElement {
     connectedCallback() {
-        this.contentEditable = true;
-        this.defaultValue = this.textContent;
-        this.addEventListener('input', this.input);
-        this.addEventListener('blur', this.blur);
+        this.innerHTML = `<span class="label">Instructions : </span><span class="editable" contentEditable="true"></span>`;
+        
+        this.labelSpan = this.querySelector('.label');
+        this.editableSpan = this.querySelector('.editable');
+
+        this.defaultValue = this.editableSpan.textContent || ''; // Store the default value
+
+        this.addEventListener('input', this.input.bind(this));
+        this.addEventListener('blur', this.blur.bind(this));
     }
 
     load(idsElement) {
         this.idsElement = idsElement;
-        this.idsAttribute = this.idsElement.attributes['instructions']
+        this.idsAttribute = this.idsElement.attributes['instructions'];
         if (this.idsAttribute) {
-            this.textContent = this.idsAttribute.value;
+            this.editableSpan.textContent = this.idsAttribute.value;
         }
         this.idsAttribute ? this.classList.remove('null') : this.classList.add('null');
     }
 
-    input(e) {
-        if (!this.idsAttribute && this.textContent) {
+    input() {
+        const editableText = this.editableSpan.textContent;
+
+        // Add new attribute if it doesn't exist
+        if (!this.idsAttribute && editableText) {
             this.add();
         }
-        this.idsAttribute ? this.idsAttribute.value = this.textContent : null;
+
+        // Update the existing attribute
+        if (this.idsAttribute) {
+            this.idsAttribute.value = editableText;
+        }
+        
         this.idsAttribute ? this.classList.remove('null') : this.classList.add('null');
     }
 
-    blur(e) {
-        if (this.idsAttribute && !this.textContent) {
+    blur() {
+        const editableText = this.editableSpan.textContent;
+
+        // Remove the attribute if the text is empty
+        if (this.idsAttribute && !editableText) {
             this.remove();
         }
-        if (!this.textContent) {
-            this.textContent = this.defaultValue;
+
+        // Reset to default value if empty
+        if (!editableText) {
+            this.editableSpan.textContent = this.defaultValue;
         }
+
         this.idsAttribute ? this.classList.remove('null') : this.classList.add('null');
     }
 
     add() {
-        this.idsElement.setAttribute('instructions', this.textContent);
+        const editableText = this.editableSpan.textContent;
+        this.idsElement.setAttribute('instructions', editableText);
         this.idsAttribute = this.idsElement.attributes['instructions'];
     }
 
     remove() {
-        this.idsElement.attributes.removeNamedItem('instructions');
+        this.idsElement.removeAttribute('instructions');
         this.idsAttribute = null;
     }
 }
@@ -612,7 +626,6 @@ class IDSFacetAdd extends HTMLElement {
         propertyFacet.setAttribute('instructions', "Enter Instructions");
 
         facets.idsElement.append(propertyFacet);
-        console.log('PropertyFacet', propertyFacet)
         specs.render();
     }
 
@@ -636,7 +649,6 @@ class IDSFacetAdd extends HTMLElement {
         partOfFacet.setAttribute('relation', 'IFCRELASSIGNSTOGROUP');
         partOfFacet.appendChild(entityFacet);
         facets.idsElement.append(partOfFacet);
-        console.log('partOfFacet', partOfFacet)
         specs.render();
     }
 }
@@ -728,8 +740,6 @@ class IDSFacetDropdown extends HTMLElement {
         const facet = this.closest('ids-facet');
         let partOfFacet = facet.idsElement;
 
-        // Get the first 'partOf' element
-        console.log('partOf facet start ', partOfFacet)
 
         if (partOfFacet) {
             if (value === 'IFCRELAGGREGATES') {
@@ -752,7 +762,6 @@ class IDSFacetDropdown extends HTMLElement {
                 partOfFacet.removeAttribute('relation');
             }
         }
-        console.log('partOfFacet ENd ', partOfFacet)
         facet.isdElement = partOfFacet;
         specs.render();
     }
@@ -820,7 +829,6 @@ class IDSFacetDropdown extends HTMLElement {
         const specs = this.closest('ids-specs');
         const facet = this.closest('ids-facet');
         let idsElement = facet.idsElement;
-        console.log('idsElement', idsElement);
 
         let element = null;
         let entityElement = null;
@@ -834,7 +842,6 @@ class IDSFacetDropdown extends HTMLElement {
                 element = entityElement.getElementsByTagNameNS(ns, tagName)[0];
                 if (element) {
                     entityElement.removeChild(element); // Remove from entity
-                    console.log('Element removed from entityElement');
                 }
             } catch (e) {
                 console.error('Failed to remove element from entityElement:', e);
@@ -845,7 +852,6 @@ class IDSFacetDropdown extends HTMLElement {
                 element = idsElement.getElementsByTagNameNS(ns, tagName)[0];
                 if (element) {
                     idsElement.removeChild(element); // Remove directly from idsElement
-                    console.log('Element removed from idsElement');
                 }
             } catch (e) {
                 console.error('Failed to remove element from idsElement:', e);
@@ -861,10 +867,8 @@ class IDSFacetDropdown extends HTMLElement {
             try {
                 if (entityElement) {
                     entityElement.appendChild(element); // Append to entity if it exists
-                    console.log('Element appended to entityElement');
                 } else {
                     idsElement.appendChild(element); // Otherwise, append directly to idsElement
-                    console.log('Element appended to idsElement');
                 }
             } catch (e) {
                 console.error('Failed to append element:', e);
@@ -930,6 +934,7 @@ class IDSFacetDropdown extends HTMLElement {
         return [restriction];
     }
 }
+
 class IDSFacetBoundsDropdown extends HTMLElement {
     constructor() {
         super();
@@ -941,9 +946,9 @@ class IDSFacetBoundsDropdown extends HTMLElement {
     }
 
     render() {
-        const type = this.getAttribute('type');
-
+        const type = this.getAttribute('type'); 
         // Get the options based on the type attribute
+        const target = this.getAttribute('target');
         const minOptions = [
             { value: 'minInclusive', text: 'greater than or equal to' },
             { value: 'minExclusive', text: 'greater than' },
@@ -989,16 +994,23 @@ class IDSFacetBoundsDropdown extends HTMLElement {
 
     addEventListeners() {
         this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
+            let self = this 
+            console.log('self',self)
+            let target = self.getAttribute('target')
+            console.log(target)
             let container = this.closest('ids-container');
             let specs = this.closest('ids-specs')
             let facet = this.closest('ids-facet')
             let idsElement = facet.idsElement;
-            let predefinedType = idsElement.getElementsByTagNameNS(ns, 'predefinedType')[0];
-            let restriction = predefinedType.getElementsByTagNameNS(xs, 'restriction')[0];
-
+            console.log('idsElement',idsElement)
+            let type = idsElement.getElementsByTagNameNS(ns, target)[0];
+            
+            let restriction = type.getElementsByTagNameNS(xs, 'restriction')[0];
+            console.log('type',type)
+            console.log(restriction)
             if (e.target.value == 'minInclusive') {
-                let minInclusive = predefinedType.getElementsByTagNameNS(xs, 'minInclusive')[0];
-                let minExclusive = predefinedType.getElementsByTagNameNS(xs, 'minExclusive')[0];
+                let minInclusive = restriction.getElementsByTagNameNS(xs, 'minInclusive')[0];
+                let minExclusive = restriction.getElementsByTagNameNS(xs, 'minExclusive')[0];
 
 
                 if (minInclusive) {
@@ -1006,18 +1018,21 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 }
                 if (minExclusive) {
                     restriction.removeChild(minExclusive);
+                
                 }
 
                 minInclusive = container.ids.createElementNS(xs, 'minInclusive')
                 minInclusive.setAttribute('value', 'Enter Value');
+
+                console.log('restriction2',restriction)
                 restriction.appendChild(minInclusive)
 
                 facet.idsElement = idsElement;
                 specs.render();
             }
             else if (e.target.value == 'minExclusive') {
-                let minInclusive = predefinedType.getElementsByTagNameNS(xs, 'minInclusive')[0];
-                let minExclusive = predefinedType.getElementsByTagNameNS(xs, 'minExclusive')[0];
+                let minInclusive = restriction.getElementsByTagNameNS(xs, 'minInclusive')[0];
+                let minExclusive = restriction.getElementsByTagNameNS(xs, 'minExclusive')[0];
 
                 if (minInclusive) {
                     restriction.removeChild(minInclusive);
@@ -1029,13 +1044,13 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 minExclusive = container.ids.createElementNS(xs, 'minExclusive')
                 minExclusive.setAttribute('value', 'Enter Value');
                 restriction.appendChild(minExclusive)
-
+                
                 facet.idsElement = idsElement;
                 specs.render();
             }
             if (e.target.value == 'maxInclusive') {
-                let maxInclusive = predefinedType.getElementsByTagNameNS(xs, 'maxInclusive')[0];
-                let maxExclusive = predefinedType.getElementsByTagNameNS(xs, 'maxExclusive')[0];
+                let maxInclusive = restriction.getElementsByTagNameNS(xs, 'maxInclusive')[0];
+                let maxExclusive = restriction.getElementsByTagNameNS(xs, 'maxExclusive')[0];
 
 
                 if (maxInclusive) {
@@ -1053,8 +1068,8 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 specs.render();
             }
             else if (e.target.value == 'maxExclusive') {
-                let maxInclusive = predefinedType.getElementsByTagNameNS(xs, 'maxInclusive')[0];
-                let maxExclusive = predefinedType.getElementsByTagNameNS(xs, 'maxExclusive')[0];
+                let maxInclusive = restriction.getElementsByTagNameNS(xs, 'maxInclusive')[0];
+                let maxExclusive = restriction.getElementsByTagNameNS(xs, 'maxExclusive')[0];
 
 
                 if (maxInclusive) {
@@ -1147,7 +1162,6 @@ class IDSFacet extends HTMLElement {
 
         if (value) {
             if (value.value == 'IFCRELAGGREGATES') {
-                console.log('here')
                 parameters.relationIFCRELAGGREGATES = '<ids-param filter="relation">' + this.sentence(this.idsElement.attributes['relation'].value.replace('Ifc', '').replace('Rel', '')) + '</ids-param>';
             }
             else if (value.value === 'IFCRELASSIGNSTOGROUP') {
@@ -1173,9 +1187,28 @@ class IDSFacet extends HTMLElement {
     parseBaseName(idsElement, parameters) {
         let baseName = this.idsElement.getElementsByTagNameNS(ns, 'baseName')[0]
 
-        let baseNameValue = this.getIdsValue(baseName);
-        // as same as the EnitityNameValue
-        this.processEntityNameValue(baseNameValue, parameters);
+        let value = this.getIdsValue(baseName);
+        if (value.type === 'simpleValue') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.name = `<ids-param filter="entityName">${content}</ids-param>`;
+            this.params.push(value.param);
+        } else if (value.type === 'enumeration') {
+            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
+            parameters.nameTypeEnumeration = `<ids-param filter="entityName">${content}</ids-param>`;
+            this.params.push(value.param);
+        }
+        else if (value.type === 'pattern') {
+            parameters.namePattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
+            this.params.push(value.param);
+        }
+        else if (value.type === 'bounds') {
+            parameters.nameBounds = this.processBoundsValue(value, parameters,"baseName");
+            this.params.push(value.param);
+        }
+        else if (value.type === 'length') {
+            parameters.nameLength = `<ids-param filter="length">${value.content}</ids-param>`;
+            this.params.push(value.param);
+        }
     }
 
     parseEntityName(idsElement, parameters) {
@@ -1205,11 +1238,11 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'pattern') {
-            parameters.namePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            parameters.namePattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
             this.params.push(value.param);
         }
         else if (value.type === 'bounds') {
-            parameters.nameBounds = this.processBoundsValue(value, parameters);
+            parameters.nameBounds = this.processBoundsValue(value, parameters,"name");
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
@@ -1229,11 +1262,11 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'pattern') {
-            parameters.namePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            parameters.namePattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
             this.params.push(value.param);
         }
         else if (value.type === 'bounds') {
-            parameters.nameBounds = this.processBoundsValue(value, parameters);
+            parameters.nameBounds = this.processBoundsValue(value, parameters,"name");
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
@@ -1261,9 +1294,9 @@ class IDSFacet extends HTMLElement {
         } else if (value.type === 'enumeration') {
             parameters.typeEnumeration = `<ids-param>${value.content}</ids-param>`;
         } else if (value.type === 'pattern') {
-            parameters.pattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            parameters.pattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
         } else if (value.type === 'bounds') {
-            parameters.bounds = this.processBoundsValue(value, parameters);
+            parameters.bounds = this.processBoundsValue(value, parameters,"predefinedType");
         } else if (value.type === 'length') {
             parameters.length = `<ids-param filter="length">${value.content}</ids-param>`;
         }
@@ -1277,54 +1310,58 @@ class IDSFacet extends HTMLElement {
                 parameters.type = '<ids-param>' + value.content + '</ids-param>';
                 this.params.push(value.param);
             } else if (value.type == 'pattern') {
-                parameters.pattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+                parameters.pattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
                 this.params.push(value.param);
             } else if (value.type == 'enumeration') {
                 parameters.typeEnumeration = `<ids-param>${value.content}</ids-param>`;
                 this.params.push(value.param);
             }
             else if (value.type === 'bounds') {
-                parameters.bounds = this.processBoundsValue(value, parameters);
+                parameters.bounds = this.processBoundsValue(value, parameters,"value");
             } else if (value.type === 'length') {
                 parameters.length = '<ids-param filter="length">' + value.content + '</ids-param>';
                 this.params.push(value.param);
             }
         }
     }
-    parsePropertySet(value, parameters) {
 
+    parsePropertySet(value, parameters) {
         if (value.type == 'simpleValue') {
             parameters.psetName = '<ids-param>' + value.content + '</ids-param>';
         }
         else if (value.type == 'pattern') {
-            parameters.psetPattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
+            parameters.psetPattern = '<ids-param class="pattern" filter="pattern">' + value.content + '</ids-param>';
         } else if (value.type == 'enumeration') {
             parameters.psetEnumeration = '<ids-param>' + value.content + '</ids-param>';
         } else if (value.type == 'bounds') {
-            parameters.psetBounds = '<ids-param>' + value.content + '</ids-param>';
+            parameters.psetBounds = this.processBoundsValue(value, parameters,"propertySet");
         } else if (value.type == 'length') {
             parameters.psetLength = '<ids-param filter="length">' + value.content + '</ids-param>';
         }
         this.params.push(value.param);
-
-
     }
+
     parseValue(value, parameters) {
         if (value.type == 'simpleValue') {
             parameters.value = '<ids-param>' + value.content + '</ids-param>';
             this.params.push(value.param);
         } else if (value.type == 'pattern') {
-            parameters.valuePattern = '<ids-param class="pattern">' + value.content + '</ids-param>';
+            parameters.valuePattern = '<ids-param class="pattern" filter="pattern">' + value.content + '</ids-param>';
             this.params.push(value.param);
         } else if (value.type == 'enumeration') {
             parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
             this.params.push(value.param);
         } else if (value.type == 'bounds') {
-            parameters.valueBounds = '<ids-param>' + value.content + '</ids-param>';
+            parameters.valueBounds = this.processBoundsValue(value, parameters,"value");
+            this.params.push(value.param);
+
         } else if (value.type == 'length') {
             parameters.valueLength = '<ids-para filter="length">' + value.content + '</ids-param>';
+            this.params.push(value.param);
+
         }
     }
+
     processClassificationSystemNameValue(value, parameters) {
         if (value.type === 'simpleValue') {
             let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
@@ -1334,10 +1371,10 @@ class IDSFacet extends HTMLElement {
             parameters.systemEnumeration = `<ids-param ilter="attributeName">${content}</ids-param>`;
         }
         else if (value.type === 'pattern') {
-            parameters.systemPattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+            parameters.systemPattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
         }
         else if (value.type === 'bounds') {
-            parameters.systemBounds = this.processBoundsValue(value, parameters);
+            parameters.systemBounds = this.processBoundsValue(value, parameters,"system");
         }
         else if (value.type === 'length') {
             parameters.systemLength = `<ids-param filter="length">${value.content}</ids-param>`;
@@ -1351,12 +1388,12 @@ class IDSFacet extends HTMLElement {
             if (value.type == 'simpleValue') {
                 parameters.value = '<ids-param>' + value.content + '</ids-param>';
             } else if (value.type == 'pattern') {
-                parameters.valuePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+                parameters.valuePattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
             } else if (value.type == 'enumeration') {
                 parameters.valueEnumeration = `<ids-param>${value.content}</ids-param>`;
             }
             else if (value.type === 'bounds') {
-                parameters.valueBounds = this.processBoundsValue(value, parameters);
+                parameters.valueBounds = this.processBoundsValue(value, parameters,"value");
             } else if (value.type === 'length') {
                 parameters.valueLength = `<ids-param filter="length" >${value.content}</ids-param>`;
             }
@@ -1370,33 +1407,32 @@ class IDSFacet extends HTMLElement {
             if (value.type == 'simpleValue') {
                 parameters.type = '<ids-param>' + value.content + '</ids-param>';
             } else if (value.type == 'pattern') {
-                parameters.pattern = `<ids-param class="pattern">${value.content}</ids-param>`;
+                parameters.pattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
             } else if (value.type == 'enumeration') {
                 parameters.typeEnumeration = `<ids-param>${value.content}</ids-param>`;
             }
             else if (value.type === 'bounds') {
-                parameters.bounds = this.processBoundsValue(value, parameters);
+                parameters.bounds = this.processBoundsValue(value, parameters,"value");
             } else if (value.type === 'length') {
                 parameters.length = `<ids-param filter="length">${value.content}</ids-param>`;
             }
             this.params.push(value.param);
         }
     }
-    processBoundsValue(value, parameters) {
+    processBoundsValue(value, parameters,target) {
         let minBoundsDropdowns = '';
         let minBoundsValues = '';
         let maxBoundsDropdowns = '';
         let maxBoundsValues = '';
         if (value.param.minInclusive || value.param.minExclusive) {
-            minBoundsDropdowns += this.createBoundsDropdown('min', value.param);
-            minBoundsValues += `<ids-param class="bounds">${this.getBoundsValue(value.param, 'min')}</ids-param>`;
+            minBoundsDropdowns += this.createBoundsDropdown('min', value.param,target);
+            minBoundsValues += `<ids-param filter="bounds">${this.getBoundsValue(value.param, 'min')}</ids-param>`;
         }
 
         if (value.param.maxExclusive || value.param.maxInclusive) {
-            maxBoundsDropdowns += this.createBoundsDropdown('max', value.param);
-            maxBoundsValues += `<ids-param class="bounds">${this.getBoundsValue(value.param, 'max')}</ids-param>`;
+            maxBoundsDropdowns += this.createBoundsDropdown('max', value.param,target);
+            maxBoundsValues += `<ids-param filter="bounds">${this.getBoundsValue(value.param, 'max')}</ids-param>`;
         }
-
         // Combine dropdowns and values
         let bounds;
         if (minBoundsDropdowns && maxBoundsDropdowns) {
@@ -1406,13 +1442,15 @@ class IDSFacet extends HTMLElement {
         } else if (maxBoundsDropdowns) {
             bounds = `${maxBoundsDropdowns} ${maxBoundsValues} `;
         }
-
-        return bounds;
+       
+        return bounds; 
     }
 
-    createBoundsDropdown(type, param) {
+    createBoundsDropdown(type, param,target) {
+
         let dropdown = document.createElement('ids-facet-bounds-dropdown');
         dropdown.setAttribute('type', type);
+        dropdown.setAttribute('target', target);
 
         if (type === 'min') {
             if (param.minInclusive) {
@@ -1427,7 +1465,7 @@ class IDSFacet extends HTMLElement {
                 dropdown.setAttribute('maxExclusive', param.maxExclusive);
             }
         }
-
+        console.log('dropdown',dropdown.outerHTML)
         return dropdown.outerHTML;
     }
 
@@ -1436,30 +1474,6 @@ class IDSFacet extends HTMLElement {
             ? param.minInclusive || param.minExclusive
             : param.maxInclusive || param.maxExclusive;
     }
-    processAttributeNameValue(value, parameters) {
-        if (value.type == 'simpleValue') {
-            parameters.name = '<ids-param filter="attributeName">' + this.sentence(value.content) + '</ids-param>';
-            this.params.push(value.param);
-
-        } else if (value.type === 'enumeration') {
-            let content = this.capitalise(value.content.toLowerCase().replace(/ifc/g, ''));
-            parameters.nameTypeEnumeration = `<ids-param filter="attributeName"">${content}</ids-param>`;
-            this.params.push(value.param);
-        }
-        else if (value.type === 'pattern') {
-            parameters.namePattern = `<ids-param class="pattern">${value.content}</ids-param>`;
-            this.params.push(value.param);
-        }
-        else if (value.type === 'bounds') {
-            parameters.nameBounds = this.processBoundsValue(value, parameters);
-            this.params.push(value.param);
-        }
-        else if (value.type === 'length') {
-            parameters.nameLength = `<ids-param filter="length">${value.content}</ids-param>`;
-            this.params.push(value.param);
-        }
-    }
-
 
     loadEntity() {
         let templates;
@@ -1720,7 +1734,6 @@ class IDSFacet extends HTMLElement {
         }
 
         let parameters = {};
-        console.log(templates.length)
 
         this.parseBaseName(this.idsElement, parameters)
 
@@ -1858,7 +1871,6 @@ class IDSFacet extends HTMLElement {
         let parameters = {};
         this.parseRelation(this.idsElement, parameters)
         this.parseEntityName(this.idsElement, parameters);
-        console.log(parameters)
 
         this.innerHTML = this.renderTemplate(templates, parameters);
     }
@@ -1978,7 +1990,13 @@ class IDSParam extends HTMLElement {
         } 
         else if (this.filter == 'pattern') {
             this.idsElement.setAttribute('value', this.textContent);
-        } 
+            console.log(this.idsElement)
+
+        }
+        else if(this.filter == 'bounds'){
+
+            console.log('bounds',this.idsElement)
+        }
         else {
             console.log(this.idsElement)
             this.idsElement.textContent = this.textContent;
@@ -1995,11 +2013,9 @@ class IDSSpecs extends HTMLElement {
         this.idsElement = idsElement;
         this.idsElement.addEventListener('ids-spec-remove', function () { self.render(); });
         this.idsElement.addEventListener('ids-spec-add', function () {
-            console.log('ids-spec-add event triggered');
             self.render();
         });
         this.idsElement.addEventListener('ids-spec-move', function () {
-            console.log('ids-spec-move event triggered');
             self.render();
         });
         this.render();
