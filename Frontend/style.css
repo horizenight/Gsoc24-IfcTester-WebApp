@@ -275,7 +275,12 @@ ids-spec ids-spec-handle .snippet {
 .facet .facet-controls {
     display: none;
 }
-
+.facet-controls i[data-feather="plus"] {
+    position: relative; /* Ensure the icon is positioned relative to its parent */
+    top: 2px;           /* Adjust the vertical position if needed */
+    margin-right: 5px;  /* Add space between the icon and the dropdown */
+    cursor: pointer;    /* Show pointer cursor on hover */
+}
 .facet:hover .facet-controls {
     display: inline;
 }
@@ -497,9 +502,7 @@ ids-facet-add {
     position: relative;
 }
 
-ids-add-optional-type{
-    position:relative
-}
+
 
 .facet-list {
     display: none; 
@@ -520,3 +523,29 @@ ids-add-optional-type{
     background-color: #f0f0f0; /* Highlight on hover */
 }
 
+ids-add-optional-type {
+    position: relative;
+    display: inline-block;
+}
+
+.optional-type-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    z-index: 1000;
+    width: 150px;
+    color: #363636;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.optional-type-item {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.optional-type-item:hover {
+    background-color: #f0f0f0;
+}

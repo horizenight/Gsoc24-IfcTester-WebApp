@@ -417,7 +417,7 @@ class IDSFacets extends HTMLElement {
 class IDSFacetInstructions extends HTMLElement {
     connectedCallback() {
         this.innerHTML = `<span class="label">Instructions : </span><span class="editable" contentEditable="true"></span>`;
-        
+
         this.labelSpan = this.querySelector('.label');
         this.editableSpan = this.querySelector('.editable');
 
@@ -448,7 +448,7 @@ class IDSFacetInstructions extends HTMLElement {
         if (this.idsAttribute) {
             this.idsAttribute.value = editableText;
         }
-        
+
         this.idsAttribute ? this.classList.remove('null') : this.classList.add('null');
     }
 
@@ -578,7 +578,7 @@ class IDSFacetAdd extends HTMLElement {
     createEntityFacet() {
         this.createAndRenderFacet('entity', [
             { tag: 'name', content: 'Enter Name' },
-            { tag: 'predefinedType', content: 'Enter Type' }
+            // { tag: 'predefinedType', content: 'Enter Type' }
         ]);
     }
 
@@ -674,6 +674,9 @@ class IDSFacetDropdown extends HTMLElement {
             { value: 'bounds', text: 'has value' },
             { value: 'length', text: 'has length' },
         ];
+        if (target == "predefinedType" ||target == "value" ) {
+            options.push({ value: 'none', text: "none" })
+        }
 
         if (target == 'relation') {
             options = [
@@ -687,7 +690,6 @@ class IDSFacetDropdown extends HTMLElement {
                 { value: 'none', text: 'directly or indirectly part of' },
             ];
         }
-        //TODO : take care of the optional types 
         this.shadowRoot.innerHTML = `
             <style>
                 select {
@@ -794,23 +796,45 @@ class IDSFacetDropdown extends HTMLElement {
     }
 
     handlePredefinedTypeChange(value) {
-        this.updateFacetElement('predefinedType', value, [
-            { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
-            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
-            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
-            { value: 'bounds', elements: () => this.createBoundsElement() },
-            { value: 'length', elements: () => this.createLengthElement('Enter length Value') }
-        ]);
+        if (value == "none") {
+            this.removeOptionalType('predefinedType')
+        } else {
+            this.updateFacetElement('predefinedType', value, [
+                { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
+                { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
+                { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+                { value: 'bounds', elements: () => this.createBoundsElement() },
+                { value: 'length', elements: () => this.createLengthElement('Enter length Value') },
+            ]);
+        }
+
     }
 
+    removeOptionalType(type) {
+        const specs = this.closest('ids-specs');
+        const facet = this.closest('ids-facet');
+        let idsElement = facet.idsElement;
+
+        let typeToRemove = idsElement.getElementsByTagName(type)[0]
+        idsElement.removeChild(typeToRemove)
+        facet.idsElement = idsElement;
+        specs.render();
+    }
+
+
     handleValueChange(value) {
+        if (value == "none") {
+            this.removeOptionalType('value')
+        } else {
+
         this.updateFacetElement('value', value, [
             { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
             { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
             { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
             { value: 'bounds', elements: () => this.createBoundsElement() },
-            { value: 'length', elements: () => this.createLengthElement('Enter length Value') }
+            { value: 'length', elements: () => this.createLengthElement('Enter length Value') },
         ])
+    }
     }
 
     handelSystemChange(value) {
@@ -933,6 +957,10 @@ class IDSFacetDropdown extends HTMLElement {
 
         return [restriction];
     }
+
+    removePredefinedType() {
+        console.log('this', this)
+    }
 }
 
 class IDSFacetBoundsDropdown extends HTMLElement {
@@ -946,7 +974,7 @@ class IDSFacetBoundsDropdown extends HTMLElement {
     }
 
     render() {
-        const type = this.getAttribute('type'); 
+        const type = this.getAttribute('type');
         // Get the options based on the type attribute
         const target = this.getAttribute('target');
         const minOptions = [
@@ -994,19 +1022,19 @@ class IDSFacetBoundsDropdown extends HTMLElement {
 
     addEventListeners() {
         this.shadowRoot.querySelector('#dropdown').addEventListener('change', (e) => {
-            let self = this 
-            console.log('self',self)
+            let self = this
+            console.log('self', self)
             let target = self.getAttribute('target')
             console.log(target)
             let container = this.closest('ids-container');
             let specs = this.closest('ids-specs')
             let facet = this.closest('ids-facet')
             let idsElement = facet.idsElement;
-            console.log('idsElement',idsElement)
+            console.log('idsElement', idsElement)
             let type = idsElement.getElementsByTagNameNS(ns, target)[0];
-            
+
             let restriction = type.getElementsByTagNameNS(xs, 'restriction')[0];
-            console.log('type',type)
+            console.log('type', type)
             console.log(restriction)
             if (e.target.value == 'minInclusive') {
                 let minInclusive = restriction.getElementsByTagNameNS(xs, 'minInclusive')[0];
@@ -1018,13 +1046,13 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 }
                 if (minExclusive) {
                     restriction.removeChild(minExclusive);
-                
+
                 }
 
                 minInclusive = container.ids.createElementNS(xs, 'minInclusive')
                 minInclusive.setAttribute('value', 'Enter Value');
 
-                console.log('restriction2',restriction)
+                console.log('restriction2', restriction)
                 restriction.appendChild(minInclusive)
 
                 facet.idsElement = idsElement;
@@ -1044,7 +1072,7 @@ class IDSFacetBoundsDropdown extends HTMLElement {
                 minExclusive = container.ids.createElementNS(xs, 'minExclusive')
                 minExclusive.setAttribute('value', 'Enter Value');
                 restriction.appendChild(minExclusive)
-                
+
                 facet.idsElement = idsElement;
                 specs.render();
             }
@@ -1202,7 +1230,7 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'bounds') {
-            parameters.nameBounds = this.processBoundsValue(value, parameters,"baseName");
+            parameters.nameBounds = this.processBoundsValue(value, parameters, "baseName");
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
@@ -1242,7 +1270,7 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'bounds') {
-            parameters.nameBounds = this.processBoundsValue(value, parameters,"name");
+            parameters.nameBounds = this.processBoundsValue(value, parameters, "name");
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
@@ -1266,7 +1294,7 @@ class IDSFacet extends HTMLElement {
             this.params.push(value.param);
         }
         else if (value.type === 'bounds') {
-            parameters.nameBounds = this.processBoundsValue(value, parameters,"name");
+            parameters.nameBounds = this.processBoundsValue(value, parameters, "name");
             this.params.push(value.param);
         }
         else if (value.type === 'length') {
@@ -1296,7 +1324,7 @@ class IDSFacet extends HTMLElement {
         } else if (value.type === 'pattern') {
             parameters.pattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
         } else if (value.type === 'bounds') {
-            parameters.bounds = this.processBoundsValue(value, parameters,"predefinedType");
+            parameters.bounds = this.processBoundsValue(value, parameters, "predefinedType");
         } else if (value.type === 'length') {
             parameters.length = `<ids-param filter="length">${value.content}</ids-param>`;
         }
@@ -1317,7 +1345,7 @@ class IDSFacet extends HTMLElement {
                 this.params.push(value.param);
             }
             else if (value.type === 'bounds') {
-                parameters.bounds = this.processBoundsValue(value, parameters,"value");
+                parameters.bounds = this.processBoundsValue(value, parameters, "value");
             } else if (value.type === 'length') {
                 parameters.length = '<ids-param filter="length">' + value.content + '</ids-param>';
                 this.params.push(value.param);
@@ -1334,7 +1362,7 @@ class IDSFacet extends HTMLElement {
         } else if (value.type == 'enumeration') {
             parameters.psetEnumeration = '<ids-param>' + value.content + '</ids-param>';
         } else if (value.type == 'bounds') {
-            parameters.psetBounds = this.processBoundsValue(value, parameters,"propertySet");
+            parameters.psetBounds = this.processBoundsValue(value, parameters, "propertySet");
         } else if (value.type == 'length') {
             parameters.psetLength = '<ids-param filter="length">' + value.content + '</ids-param>';
         }
@@ -1352,7 +1380,7 @@ class IDSFacet extends HTMLElement {
             parameters.valueEnumeration = '<ids-param>' + value.content + '</ids-param>';
             this.params.push(value.param);
         } else if (value.type == 'bounds') {
-            parameters.valueBounds = this.processBoundsValue(value, parameters,"value");
+            parameters.valueBounds = this.processBoundsValue(value, parameters, "value");
             this.params.push(value.param);
 
         } else if (value.type == 'length') {
@@ -1374,7 +1402,7 @@ class IDSFacet extends HTMLElement {
             parameters.systemPattern = `<ids-param class="pattern" filter="pattern">${value.content}</ids-param>`;
         }
         else if (value.type === 'bounds') {
-            parameters.systemBounds = this.processBoundsValue(value, parameters,"system");
+            parameters.systemBounds = this.processBoundsValue(value, parameters, "system");
         }
         else if (value.type === 'length') {
             parameters.systemLength = `<ids-param filter="length">${value.content}</ids-param>`;
@@ -1393,7 +1421,7 @@ class IDSFacet extends HTMLElement {
                 parameters.valueEnumeration = `<ids-param>${value.content}</ids-param>`;
             }
             else if (value.type === 'bounds') {
-                parameters.valueBounds = this.processBoundsValue(value, parameters,"value");
+                parameters.valueBounds = this.processBoundsValue(value, parameters, "value");
             } else if (value.type === 'length') {
                 parameters.valueLength = `<ids-param filter="length" >${value.content}</ids-param>`;
             }
@@ -1412,25 +1440,25 @@ class IDSFacet extends HTMLElement {
                 parameters.typeEnumeration = `<ids-param>${value.content}</ids-param>`;
             }
             else if (value.type === 'bounds') {
-                parameters.bounds = this.processBoundsValue(value, parameters,"value");
+                parameters.bounds = this.processBoundsValue(value, parameters, "value");
             } else if (value.type === 'length') {
                 parameters.length = `<ids-param filter="length">${value.content}</ids-param>`;
             }
             this.params.push(value.param);
         }
     }
-    processBoundsValue(value, parameters,target) {
+    processBoundsValue(value, parameters, target) {
         let minBoundsDropdowns = '';
         let minBoundsValues = '';
         let maxBoundsDropdowns = '';
         let maxBoundsValues = '';
         if (value.param.minInclusive || value.param.minExclusive) {
-            minBoundsDropdowns += this.createBoundsDropdown('min', value.param,target);
+            minBoundsDropdowns += this.createBoundsDropdown('min', value.param, target);
             minBoundsValues += `<ids-param filter="bounds">${this.getBoundsValue(value.param, 'min')}</ids-param>`;
         }
 
         if (value.param.maxExclusive || value.param.maxInclusive) {
-            maxBoundsDropdowns += this.createBoundsDropdown('max', value.param,target);
+            maxBoundsDropdowns += this.createBoundsDropdown('max', value.param, target);
             maxBoundsValues += `<ids-param filter="bounds">${this.getBoundsValue(value.param, 'max')}</ids-param>`;
         }
         // Combine dropdowns and values
@@ -1442,11 +1470,11 @@ class IDSFacet extends HTMLElement {
         } else if (maxBoundsDropdowns) {
             bounds = `${maxBoundsDropdowns} ${maxBoundsValues} `;
         }
-       
-        return bounds; 
+
+        return bounds;
     }
 
-    createBoundsDropdown(type, param,target) {
+    createBoundsDropdown(type, param, target) {
 
         let dropdown = document.createElement('ids-facet-bounds-dropdown');
         dropdown.setAttribute('type', type);
@@ -1465,7 +1493,7 @@ class IDSFacet extends HTMLElement {
                 dropdown.setAttribute('maxExclusive', param.maxExclusive);
             }
         }
-        console.log('dropdown',dropdown.outerHTML)
+        console.log('dropdown', dropdown.outerHTML)
         return dropdown.outerHTML;
     }
 
@@ -1496,7 +1524,11 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.`
+                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.`+`
+                    <span class="facet-control">
+                    <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
+                    </span>
+                    `
                 );
             });
 
@@ -1551,7 +1583,11 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                    <span class="facet-control">
+                    <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
+                    </span>
+                    `
                 );
             });
 
@@ -1615,7 +1651,11 @@ class IDSFacet extends HTMLElement {
             templates.push('Any classified element')
             systemInfo.forEach(([system, system_param]) => {
                 templates.push(
-                    `Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}}`
+                    `Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}}`+`
+                    <span class="facet-control">
+                    <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
+                    </span>
+                    `
                 );
             });
 
@@ -1970,7 +2010,7 @@ class IDSFacet extends HTMLElement {
 class IDSParam extends HTMLElement {
     connectedCallback() {
         this.contentEditable = true;
-        this.addEventListener('input', this.input.bind(this));  
+        this.addEventListener('input', this.input.bind(this));
         this.filter = this.attributes['filter'] ? this.attributes['filter'].value : null;
     }
 
@@ -1985,17 +2025,17 @@ class IDSParam extends HTMLElement {
             this.idsElement.textContent = 'IFC' + this.textContent.toUpperCase();
         } else if (this.filter == 'attributeName' || this.filter == 'propertyName') {
             this.idsElement.textContent = this.textContent.replace(/\s+/g, '');
-        } else if(this.filter == 'length'){
+        } else if (this.filter == 'length') {
             this.idsElement.setAttribute('value', this.textContent);
-        } 
+        }
         else if (this.filter == 'pattern') {
             this.idsElement.setAttribute('value', this.textContent);
             console.log(this.idsElement)
 
         }
-        else if(this.filter == 'bounds'){
+        else if (this.filter == 'bounds') {
 
-            console.log('bounds',this.idsElement)
+            console.log('bounds', this.idsElement)
         }
         else {
             console.log(this.idsElement)
@@ -2369,6 +2409,98 @@ class IDSAudit extends HTMLElement {
     }
 }
 
+class IDSAddOptionalType extends HTMLElement {
+    constructor() {
+        super();
+        this.optionalTypes = [];
+        this.dropdownList = null;
+    }
+
+    static get observedAttributes() {
+        return ['optional-types'];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'optional-types' && newValue) {
+            this.optionalTypes = JSON.parse(newValue);
+            if (this.dropdownList) {
+                this.updateDropdownList();
+            }
+        }
+    }
+
+    connectedCallback() {
+        this.dropdownList = this.createDropdownList(this.optionalTypes);
+        this.appendChild(this.dropdownList);
+        this.addEventListener('mouseover', this.showDropdown.bind(this));
+        this.addEventListener('mouseout', this.hideDropdown.bind(this));
+        this.addEventListener('click', this.handleClick.bind(this));
+    }
+
+    createDropdownList(items) {
+        const list = document.createElement('div');
+        list.classList.add('optional-type-list');
+        list.style.display = 'none';
+
+        items.forEach(item => {
+            const listItem = document.createElement('div');
+            listItem.textContent = item;
+            listItem.classList.add('optional-type-item');
+            listItem.addEventListener('click', () => this.handleItemClick(item));
+            list.appendChild(listItem);
+        });
+
+        return list;
+    }
+
+    updateDropdownList() {
+    
+        this.dropdownList.innerHTML = '';
+        this.optionalTypes.forEach(item => {
+            const listItem = document.createElement('div');
+            listItem.textContent = item;
+            listItem.classList.add('optional-type-item');
+            listItem.addEventListener('click', () => this.handleItemClick(item));
+            this.dropdownList.appendChild(listItem);
+        });
+    }
+
+    showDropdown() {
+        this.dropdownList.style.display = 'block';
+    }
+
+    hideDropdown() {
+        this.dropdownList.style.display = 'none';
+    }
+
+    handleClick() {
+        // Handle the click event, e.g., show or hide the dropdown
+        this.dropdownList.style.display = this.dropdownList.style.display === 'block' ? 'none' : 'block';
+    }
+
+    handleItemClick(value) {
+        // Handle the item click event
+        const container = this.closest('ids-container');
+        const specs = this.closest('ids-specs');
+        const facet = this.closest('ids-facet');
+        let idsElement = facet.idsElement;
+        let type =  container.ids.createElementNS(ns,value)
+        let simpleValue = container.ids.createElementNS(ns,'simpleValue')
+        simpleValue.textContent = "enter type";
+        type.appendChild(simpleValue)
+        console.log('whats happening',type)
+        idsElement.appendChild(type)
+        console.log('whats happening',idsElement)
+         
+        facet.idsElement = idsElement
+        specs.render()
+
+        this.hideDropdown();
+    }
+}
+
+
+
 window.customElements.define('ids-new', IDSNew);
 window.customElements.define('ids-container', IDSContainer);
 window.customElements.define('ids-alert', IDSAlert);
@@ -2397,3 +2529,4 @@ window.customElements.define('ids-facet-instructions', IDSFacetInstructions);
 window.customElements.define('ids-param', IDSParam);
 window.customElements.define('ids-facet-dropdown', IDSFacetDropdown);
 window.customElements.define('ids-facet-bounds-dropdown', IDSFacetBoundsDropdown);
+window.customElements.define('ids-add-optional-type', IDSAddOptionalType);
