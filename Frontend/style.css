@@ -492,3 +492,31 @@ ids-alert.error {
     color: #D8000C;
     background-color: #FFBABA;
 }
+
+ids-facet-add {
+    position: relative;
+}
+
+ids-add-optional-type{
+    position:relative
+}
+
+.facet-list {
+    display: none; 
+    position: absolute; 
+    background-color: white;
+    border: 1px solid #ccc; 
+    z-index: 1000; 
+    width: 120px;
+    color:#363636;
+}
+
+.facet-item {
+    padding: 8px; /* Padding for each item */
+    cursor: pointer; /* Pointer cursor for clickable items */
+}
+
+.facet-item:hover {
+    background-color: #f0f0f0; /* Highlight on hover */
+}
+
