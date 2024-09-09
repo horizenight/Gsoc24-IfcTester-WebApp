@@ -2525,7 +2525,6 @@ class IDSAddOptionalType extends HTMLElement {
 
     showDropdown() {
         this.dropdownList.style.display = 'block';
-        this.positionDropdown();
     }
 
     hideDropdown() {
@@ -2534,40 +2533,7 @@ class IDSAddOptionalType extends HTMLElement {
 
     handleClick() {
         this.dropdownList.style.display = this.dropdownList.style.display === 'block' ? 'none' : 'block';
-        this.positionDropdown();  
     }
-
-    positionDropdown() {
-    // Select the closest container element
-    const container = this.closest('ids-container');
-    
-    if (!container) {
-        console.error('No ids-container found');
-        return;
-    }
-
-    // Get the bounding rectangle of the container
-    let rect = container.getBoundingClientRect();
-    const viewportWidth = container.clientWidth;
-    const dropdownWidth = this.dropdownList.offsetWidth;
-    console.log(viewportWidth)
-    
-    const spaceRight = viewportWidth - rect.right;
-    const spaceLeft = rect.left;
-  
-    console.log('rect',rect)
-   
-    // // Position the dropdown based on available horizontal space
-    // if (spaceRight < dropdownWidth && spaceLeft > spaceRight) {
-    //     // If not enough space on the right, position dropdown to the left
-    //     this.dropdownList.style.left = 'auto';
-    //     this.dropdownList.style.right = '0';
-    // } else {
-    //     // Position dropdown to the right
-    //     this.dropdownList.style.left = '0';
-    //     this.dropdownList.style.right = 'auto';
-    // }
-}
 
     handleItemClick(value) {
         // Handle the item click event
@@ -2576,18 +2542,21 @@ class IDSAddOptionalType extends HTMLElement {
         const specs = this.closest('ids-specs');
         const facet = this.closest('ids-facet');
         let idsElement = facet.idsElement;
-        if(value =="dataType"){
-            idsElement.setAttribute('dataType',"Enter DataType")
-        }else{
-            let type = container.ids.createElementNS(ns, value);
+        let type = container.ids.createElementNS(ns, value);
             let simpleValue = container.ids.createElementNS(ns, 'simpleValue');
             simpleValue.textContent = "enter type";
             type.appendChild(simpleValue);
+        if(value =="dataType"){
+            idsElement.setAttribute('dataType',"Enter DataType")
+        }else if(idsElement.tagName =='partOf'){
+            let entity = idsElement.getElementsByTagName('entity')[0]
+            entity.appendChild(type)
+        }
+        else{
             idsElement.appendChild(type);
+            facet.idsElement = idsElement;
         }
         
-        
-        facet.idsElement = idsElement;
         specs.render();
 
         this.hideDropdown();

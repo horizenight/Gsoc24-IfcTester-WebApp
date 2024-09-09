@@ -286,6 +286,11 @@ ids-spec ids-spec-handle .snippet {
     display: inline;
 }
 
+ids-facet-remove{
+    position:absolute;
+    transform: translateY(2.5px);
+}
+
 .facet:hover .facet-controls ids-facet-remove {
     color: #aaa;
     position: absolute;
@@ -501,10 +506,8 @@ ids-alert.error {
 }
 
 ids-facet-add {
-    position: relative;
+    position: absolute;
 }
-
-
 
 .facet-list {
     display: none; 
@@ -526,8 +529,10 @@ ids-facet-add {
 }
 
 ids-add-optional-type {
-    position: relative; /* Make sure the parent of the dropdown is positioned relative */
+    position: absolute; 
+    transform: translateY(-2.5px);
 }
+
 
 .optional-type-list {
     display: none;
