@@ -80,6 +80,7 @@ ids-container {
     width: 950px;
     height: 100%;
     display: flex;
+    position: relative;
 }
 
 .ids {
@@ -91,7 +92,7 @@ ids-container {
 }
 
 .ids-document {
-    width: 700px;
+    width: 950px;
     height: calc(100%);
     overflow: scroll;
     float: left;
@@ -445,6 +446,7 @@ ids-param {
 
 ids-facet {
     display: block;
+    max-width: 525px; /* to control the OptionalType OverFlow */
 }
 
 nav {
