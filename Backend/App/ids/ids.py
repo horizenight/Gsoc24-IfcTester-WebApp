@@ -80,7 +80,7 @@ async def auditIds(ids_file: UploadFile = File(...), ifc_file: UploadFile = File
    
         print("Finished reporting:", time.time() - start)
         return {
-            "output": engine.to_string()
+            "content": engine.to_string()
         }
     
     finally:
