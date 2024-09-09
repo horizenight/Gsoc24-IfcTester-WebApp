@@ -524,24 +524,25 @@ ids-facet-add {
 }
 
 ids-add-optional-type {
-    position: relative;
-    display: inline-block;
+    position: relative; /* Make sure the parent of the dropdown is positioned relative */
 }
 
 .optional-type-list {
     display: none;
     position: absolute;
-    top: 100%;
-    right: 0;
+    left: 0;
     background-color: white;
     border: 1px solid #ccc;
-    z-index: 1000;
+    z-index: 10001;  /* High z-index to ensure it appears on top */
     width: 150px;
     color: #363636;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(51, 35, 35, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .optional-type-item {
+    position: relative;  /* Ensure z-index applies here too */
     padding: 8px 12px;
     cursor: pointer;
 }

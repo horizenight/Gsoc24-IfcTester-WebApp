@@ -764,6 +764,7 @@ class IDSFacetDropdown extends HTMLElement {
                 partOfFacet.removeAttribute('relation');
             }
         }
+        console.log(partOfFacet)
         facet.isdElement = partOfFacet;
         specs.render();
     }
@@ -838,6 +839,9 @@ class IDSFacetDropdown extends HTMLElement {
     }
 
     handelSystemChange(value) {
+        if (value == "none") {
+            this.removeOptionalType('value')
+        } else {
         this.updateFacetElement('system', value, [
             { value: 'type', elements: () => [this.createSimpleValueElement('Enter System')] },
             { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter System1', 'Enter System2']) },
@@ -845,6 +849,7 @@ class IDSFacetDropdown extends HTMLElement {
             { value: 'bounds', elements: () => this.createBoundsElement() },
             { value: 'length', elements: () => this.createLengthElement('Enter Length Value') }
         ])
+    }
     }
 
 
@@ -1603,7 +1608,11 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                    <span class="facet-control">
+                    <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
+                    </span>
+                    `
                 );
             });
 
@@ -1729,15 +1738,27 @@ class IDSFacet extends HTMLElement {
                     propertyValues.forEach(([value, value_param]) => {
                         // both absent
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                            <span class="facet-control">
+                            <ids-add-optional-type optional-types='["dataType","value"]'><i data-feather="plus"></i><ids-add-optional-type>
+                            </span>
+                            `,
                         );
                         // dataType Present Value not
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}`
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}`+`
+                            <span class="facet-control">
+                            <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
+                            </span>
+                            `,
                         );
                         //dataType not present value present
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`+`
+                            <span class="facet-control">
+                            <ids-add-optional-type optional-types='["dataType"]'><i data-feather="plus"></i><ids-add-optional-type>
+                            </span>
+                            `,
                         );
 
                         templates.push(
@@ -1790,7 +1811,7 @@ class IDSFacet extends HTMLElement {
 
         let dataTypevalue = this.idsElement.attributes['dataType']
         if (dataTypevalue) {
-            parameters.dataType = '<ids-param>' + dataTypevalue.value + '</ids-param>';
+            parameters.dataType = '<ids-param filter="dataType">' + dataTypevalue.value + '</ids-param>';
         }
 
         this.innerHTML = this.renderTemplate(templates, parameters);
@@ -1800,7 +1821,11 @@ class IDSFacet extends HTMLElement {
         let templates;
         if (this.type == 'applicability') {
             templates = [
-                'All data with a material',
+                'All data with a material'+`
+                <span class="facet-control">
+                <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
+                </span>
+                `,
 
                 'Entities having Material that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown> {type} data',
 
@@ -1815,7 +1840,11 @@ class IDSFacet extends HTMLElement {
             ];
         } else if (this.type == 'requirement') {
             templates = [
-                'Shall have a material',
+                'Shall have a material'+`
+                <span class="facet-control">
+                <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
+                </span>
+                `,
 
                 'Entities having Material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
 
@@ -2031,11 +2060,21 @@ class IDSParam extends HTMLElement {
         else if (this.filter == 'pattern') {
             this.idsElement.setAttribute('value', this.textContent);
             console.log(this.idsElement)
-
         }
         else if (this.filter == 'bounds') {
-
             console.log('bounds', this.idsElement)
+        }
+        else if (this.filter == "dataType") {
+            console.log('dateType',this.idsElement.parentElement.parentElement)
+                if(this.textContent =="none" || this.textContent =="None" ){
+                    console.log('dateType none',this.idsElement.parentElement.parentElement)
+                    this.idsElement.parentElement.parentElement.removeAttribute('dataType')
+                    const specs = this.closest('ids-specs')
+                    specs.render()
+
+                }else{
+                    this.idsElement.parentElement.parentElement.setAttribute('dataType',this.textContent)
+                }
         }
         else {
             console.log(this.idsElement)
@@ -2454,7 +2493,6 @@ class IDSAddOptionalType extends HTMLElement {
     }
 
     updateDropdownList() {
-    
         this.dropdownList.innerHTML = '';
         this.optionalTypes.forEach(item => {
             const listItem = document.createElement('div');
@@ -2467,6 +2505,7 @@ class IDSAddOptionalType extends HTMLElement {
 
     showDropdown() {
         this.dropdownList.style.display = 'block';
+        this.positionDropdown();
     }
 
     hideDropdown() {
@@ -2474,32 +2513,79 @@ class IDSAddOptionalType extends HTMLElement {
     }
 
     handleClick() {
-        // Handle the click event, e.g., show or hide the dropdown
         this.dropdownList.style.display = this.dropdownList.style.display === 'block' ? 'none' : 'block';
+        this.positionDropdown();  
     }
+
+    positionDropdown() {
+    // Select the closest container element
+    const container = this.closest('ids-container');
+    
+    if (!container) {
+        console.error('No ids-container found');
+        return;
+    }
+
+    // Get the bounding rectangle of the container
+    const rect = container.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const dropdownWidth = this.dropdownList.offsetWidth;
+    const dropdownHeight = this.dropdownList.offsetHeight;
+
+    // Calculate available space
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const spaceRight = viewportWidth - rect.right;
+    const spaceLeft = rect.left;
+
+    // Position the dropdown based on available vertical space
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+        // Dropdown should open above
+        this.dropdownList.style.bottom = '100%';
+        this.dropdownList.style.top = 'auto';
+    } else {
+        // Dropdown should open below
+        this.dropdownList.style.top = '100%';
+        this.dropdownList.style.bottom = 'auto';
+    }
+
+    // Position the dropdown based on available horizontal space
+    if (spaceRight < dropdownWidth && spaceLeft > spaceRight) {
+        // If not enough space on the right, position dropdown to the left
+        this.dropdownList.style.left = 'auto';
+        this.dropdownList.style.right = '0';
+    } else {
+        // Position dropdown to the right
+        this.dropdownList.style.left = '0';
+        this.dropdownList.style.right = 'auto';
+    }
+}
 
     handleItemClick(value) {
         // Handle the item click event
+        console.log('value',value)
         const container = this.closest('ids-container');
         const specs = this.closest('ids-specs');
         const facet = this.closest('ids-facet');
         let idsElement = facet.idsElement;
-        let type =  container.ids.createElementNS(ns,value)
-        let simpleValue = container.ids.createElementNS(ns,'simpleValue')
-        simpleValue.textContent = "enter type";
-        type.appendChild(simpleValue)
-        console.log('whats happening',type)
-        idsElement.appendChild(type)
-        console.log('whats happening',idsElement)
-         
-        facet.idsElement = idsElement
-        specs.render()
+        if(value =="dataType"){
+            idsElement.setAttribute('dataType',"Enter DataType")
+        }else{
+            let type = container.ids.createElementNS(ns, value);
+            let simpleValue = container.ids.createElementNS(ns, 'simpleValue');
+            simpleValue.textContent = "enter type";
+            type.appendChild(simpleValue);
+            idsElement.appendChild(type);
+        }
+        
+        
+        facet.idsElement = idsElement;
+        specs.render();
 
         this.hideDropdown();
     }
 }
-
-
 
 window.customElements.define('ids-new', IDSNew);
 window.customElements.define('ids-container', IDSContainer);
