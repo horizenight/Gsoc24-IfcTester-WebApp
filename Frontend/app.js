@@ -815,9 +815,17 @@ class IDSFacetDropdown extends HTMLElement {
         const specs = this.closest('ids-specs');
         const facet = this.closest('ids-facet');
         let idsElement = facet.idsElement;
-
+        console.log('remove',idsElement.tagName)
         let typeToRemove = idsElement.getElementsByTagName(type)[0]
-        idsElement.removeChild(typeToRemove)
+        if(idsElement.tagName =='partOf'){
+            // it is partOf Facet
+            let entity = idsElement.getElementsByTagName('entity')[0]
+            console.log('entity',entity)
+            entity.removeChild(typeToRemove)
+        }else{
+            idsElement.removeChild(typeToRemove)
+        }
+        
         facet.idsElement = idsElement;
         specs.render();
     }
@@ -1548,7 +1556,11 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.`
+                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.`+`
+                    <span class="facet-control">
+                    <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
+                    </span>
+                    `
                 );
             });
 
@@ -1900,7 +1912,11 @@ class IDSFacet extends HTMLElement {
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
                     templates.push(
-                        `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                        <span class="facet-control">
+                        <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
+                        </span>
+                        `
                     );
                 });
             });
@@ -1920,7 +1936,11 @@ class IDSFacet extends HTMLElement {
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
                     templates.push(
-                        `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                        `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                        <span class="facet-control">
+                        <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
+                        </span>
+                        `
                     );
                 });
             });
@@ -2527,39 +2547,26 @@ class IDSAddOptionalType extends HTMLElement {
     }
 
     // Get the bounding rectangle of the container
-    const rect = container.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    let rect = container.getBoundingClientRect();
+    const viewportWidth = container.clientWidth;
     const dropdownWidth = this.dropdownList.offsetWidth;
-    const dropdownHeight = this.dropdownList.offsetHeight;
-
-    // Calculate available space
-    const spaceBelow = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
+    console.log(viewportWidth)
+    
     const spaceRight = viewportWidth - rect.right;
     const spaceLeft = rect.left;
-
-    // Position the dropdown based on available vertical space
-    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
-        // Dropdown should open above
-        this.dropdownList.style.bottom = '100%';
-        this.dropdownList.style.top = 'auto';
-    } else {
-        // Dropdown should open below
-        this.dropdownList.style.top = '100%';
-        this.dropdownList.style.bottom = 'auto';
-    }
-
-    // Position the dropdown based on available horizontal space
-    if (spaceRight < dropdownWidth && spaceLeft > spaceRight) {
-        // If not enough space on the right, position dropdown to the left
-        this.dropdownList.style.left = 'auto';
-        this.dropdownList.style.right = '0';
-    } else {
-        // Position dropdown to the right
-        this.dropdownList.style.left = '0';
-        this.dropdownList.style.right = 'auto';
-    }
+  
+    console.log('rect',rect)
+   
+    // // Position the dropdown based on available horizontal space
+    // if (spaceRight < dropdownWidth && spaceLeft > spaceRight) {
+    //     // If not enough space on the right, position dropdown to the left
+    //     this.dropdownList.style.left = 'auto';
+    //     this.dropdownList.style.right = '0';
+    // } else {
+    //     // Position dropdown to the right
+    //     this.dropdownList.style.left = '0';
+    //     this.dropdownList.style.right = 'auto';
+    // }
 }
 
     handleItemClick(value) {
