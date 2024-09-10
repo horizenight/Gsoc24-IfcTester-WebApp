@@ -37,7 +37,7 @@ async def loadIds(ids_file: UploadFile = File(...)):
             output_xml_content = xml_file.read()
 
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid .ids file cannot be loaded")
+        raise HTTPException(status_code=400, detail=f"Invalid .ids file cannot be loaded Error: {str(e)}")
 
     finally:
         # Clean up temporary files if they exist
