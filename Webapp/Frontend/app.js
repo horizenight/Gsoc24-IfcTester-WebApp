@@ -2,8 +2,8 @@
 
 feather.replace()
 
-var ns = 'http://standards.buildingsmart.org/IDS';
-var xs = 'http://www.w3.org/2001/XMLSchema';
+let ns = 'http://standards.buildingsmart.org/IDS';
+let xs = 'http://www.w3.org/2001/XMLSchema';
 
 class IDSNew extends HTMLElement {
     connectedCallback() {
@@ -25,6 +25,8 @@ class IDSNew extends HTMLElement {
             idsFilename.innerHTML = "Template"
             if (!container.ids) {
                 container.ids = this.createDefaultIdsDocument();
+                console.log(container)
+                console.log(container.ids)
                 this.loadSpecs(container);
             }
         } else {
@@ -143,7 +145,7 @@ class IDSInfoElement extends HTMLElement {
     }
 
     add() {
-        var container = this.closest('ids-container');
+        let container = this.closest('ids-container');
         this.idsElement = container.ids.createElementNS(ns, this.attributes["name"].value);
         this.idsElement.textContent = this.textContent;
         this.idsParentElement.appendChild(this.idsElement);
@@ -161,10 +163,70 @@ class IDSSpecRemove extends HTMLElement {
     }
 
     click(e) {
+        const container = this.closest('ids-container')
+        console.log(container)
         let specs = this.closest('ids-specs');
         let spec = this.closest('ids-spec');
         specs.idsElement.removeChild(spec.idsElement);
+        if (specs.idsElement.children.length == 0) {
+            console.log('Container.ids:', container.ids);
+
+            let specifications = container.ids.getElementsByTagNameNS(ns, 'specifications')[0];
+            console.log('Specifications:', specifications);
+
+            let containerIDS = container.ids.getElementsByTagNameNS(ns, 'ids')[0];
+            if (containerIDS && specifications) {
+                containerIDS.removeChild(specifications);
+                console.log('containerIDS', containerIDS)
+                let xmlSerializer = new XMLSerializer();
+                let containerIDSString = xmlSerializer.serializeToString(containerIDS);
+
+                // Prepend the XML declaration
+                let xmlString = containerIDSString;
+                console.log(xmlString);
+
+                // Parse the XML string back into an XML document
+                let parser = new DOMParser();
+                container.ids = parser.parseFromString(xmlString, "application/xml");
+
+            } else {
+                console.error('Container IDS or Specifications not found.');
+            }
+
+            let template = container.getElementsByTagName('template')[0];
+            let idsSpec = container.getElementsByTagName('ids-specs')[0];
+            if (idsSpec && template) {
+                // Construct the new HTML for idsSpec
+                let newHtml = `
+                <ids-specs>
+                    <div class="divider">
+                        <span class="controls">
+                            <ids-spec-add>
+                                <i data-feather="plus"></i>
+                            </ids-spec-add>
+                        </span>
+                    </div>
+                    <template/>
+                    </ids-specs>
+                `;
+
+                // Set the outerHTML of idsSpec
+                idsSpec.outerHTML = newHtml;
+
+                ;
+            } else {
+                console.error('IDs Spec or Template not found.');
+            }
+
+            // Assuming this.loadSpecs is a method of your class
+            this.loadSpecs(container);
+        }
+
+
         specs.idsElement.dispatchEvent(new Event('ids-spec-remove'));
+    }
+    loadSpecs(container) {
+        container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
     }
 }
 
@@ -235,6 +297,7 @@ class IDSSpecAdd extends HTMLElement {
     }
 
     loadSpecs(container) {
+        console.log('logSpecs', container.ids)
         container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
         let specsElements = container.getElementsByTagName('ids-specs');
         for (let i = 0; i < specsElements.length; i++) {
@@ -486,8 +549,8 @@ class IDSFacetRemove extends HTMLElement {
     }
 
     click(e) {
-        var idsElement = this.closest('div').getElementsByTagName('ids-facet')[0].idsElement;
-        var parentElement = idsElement.parentElement;
+        let idsElement = this.closest('div').getElementsByTagName('ids-facet')[0].idsElement;
+        let parentElement = idsElement.parentElement;
         parentElement.removeChild(idsElement);
         parentElement.dispatchEvent(new Event('ids-facet-remove'));
     }
@@ -674,7 +737,7 @@ class IDSFacetDropdown extends HTMLElement {
             { value: 'bounds', text: 'has value' },
             { value: 'length', text: 'has length' },
         ];
-        if (target == "predefinedType" ||target == "value" ) {
+        if (target == "predefinedType" || target == "value") {
             options.push({ value: 'none', text: "none" })
         }
 
@@ -815,17 +878,17 @@ class IDSFacetDropdown extends HTMLElement {
         const specs = this.closest('ids-specs');
         const facet = this.closest('ids-facet');
         let idsElement = facet.idsElement;
-        console.log('remove',idsElement.tagName)
+        console.log('remove', idsElement.tagName)
         let typeToRemove = idsElement.getElementsByTagName(type)[0]
-        if(idsElement.tagName =='partOf'){
+        if (idsElement.tagName == 'partOf') {
             // it is partOf Facet
             let entity = idsElement.getElementsByTagName('entity')[0]
-            console.log('entity',entity)
+            console.log('entity', entity)
             entity.removeChild(typeToRemove)
-        }else{
+        } else {
             idsElement.removeChild(typeToRemove)
         }
-        
+
         facet.idsElement = idsElement;
         specs.render();
     }
@@ -836,28 +899,28 @@ class IDSFacetDropdown extends HTMLElement {
             this.removeOptionalType('value')
         } else {
 
-        this.updateFacetElement('value', value, [
-            { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
-            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
-            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
-            { value: 'bounds', elements: () => this.createBoundsElement() },
-            { value: 'length', elements: () => this.createLengthElement('Enter length Value') },
-        ])
-    }
+            this.updateFacetElement('value', value, [
+                { value: 'type', elements: () => [this.createSimpleValueElement('Enter Type')] },
+                { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter Value', 'Enter Value 2']) },
+                { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+                { value: 'bounds', elements: () => this.createBoundsElement() },
+                { value: 'length', elements: () => this.createLengthElement('Enter length Value') },
+            ])
+        }
     }
 
     handelSystemChange(value) {
         if (value == "none") {
             this.removeOptionalType('value')
         } else {
-        this.updateFacetElement('system', value, [
-            { value: 'type', elements: () => [this.createSimpleValueElement('Enter System')] },
-            { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter System1', 'Enter System2']) },
-            { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
-            { value: 'bounds', elements: () => this.createBoundsElement() },
-            { value: 'length', elements: () => this.createLengthElement('Enter Length Value') }
-        ])
-    }
+            this.updateFacetElement('system', value, [
+                { value: 'type', elements: () => [this.createSimpleValueElement('Enter System')] },
+                { value: 'typeEnumeration', elements: () => this.createEnumerationElements(['Enter System1', 'Enter System2']) },
+                { value: 'matchesPattern', elements: () => this.createPatternElement('Enter XML Regular Expression') },
+                { value: 'bounds', elements: () => this.createBoundsElement() },
+                { value: 'length', elements: () => this.createLengthElement('Enter Length Value') }
+            ])
+        }
     }
 
 
@@ -1537,7 +1600,7 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.`+`
+                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1556,7 +1619,7 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.`+`
+                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1600,7 +1663,7 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1620,7 +1683,7 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1672,7 +1735,7 @@ class IDSFacet extends HTMLElement {
             templates.push('Any classified element')
             systemInfo.forEach(([system, system_param]) => {
                 templates.push(
-                    `Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}}`+`
+                    `Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}}` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1750,7 +1813,7 @@ class IDSFacet extends HTMLElement {
                     propertyValues.forEach(([value, value_param]) => {
                         // both absent
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                             <span class="facet-control">
                             <ids-add-optional-type optional-types='["dataType","value"]'><i data-feather="plus"></i><ids-add-optional-type>
                             </span>
@@ -1758,7 +1821,7 @@ class IDSFacet extends HTMLElement {
                         );
                         // dataType Present Value not
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}`+`
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}` + `
                             <span class="facet-control">
                             <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                             </span>
@@ -1766,7 +1829,7 @@ class IDSFacet extends HTMLElement {
                         );
                         //dataType not present value present
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`+`
+                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}` + `
                             <span class="facet-control">
                             <ids-add-optional-type optional-types='["dataType"]'><i data-feather="plus"></i><ids-add-optional-type>
                             </span>
@@ -1833,7 +1896,7 @@ class IDSFacet extends HTMLElement {
         let templates;
         if (this.type == 'applicability') {
             templates = [
-                'All data with a material'+`
+                'All data with a material' + `
                 <span class="facet-control">
                 <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                 </span>
@@ -1852,7 +1915,7 @@ class IDSFacet extends HTMLElement {
             ];
         } else if (this.type == 'requirement') {
             templates = [
-                'Shall have a material'+`
+                'Shall have a material' + `
                 <span class="facet-control">
                 <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                 </span>
@@ -1912,7 +1975,7 @@ class IDSFacet extends HTMLElement {
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
                     templates.push(
-                        `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                        `Any entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                         <span class="facet-control">
                         <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
                         </span>
@@ -1936,7 +1999,7 @@ class IDSFacet extends HTMLElement {
             relations.forEach(([relation, relation_param]) => {
                 names.forEach(([name, name_param]) => {
                     templates.push(
-                        `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`+`
+                        `The entity that is <ids-facet-dropdown target="relation" defaultoption="${relation}" relation="{${relation_param}}"></ids-facet-dropdown> a <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                         <span class="facet-control">
                         <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
                         </span>
@@ -2034,10 +2097,10 @@ class IDSFacet extends HTMLElement {
 
     sentence(text) {
         // E.g. ElevationOfSSLRelative --> Elevation Of S S L Relative
-        var words = text.match(/([A-Z]?[^A-Z]*)/g).slice(0, -1);
-        var mergedWords = [];
-        var mergedWord = '';
-        for (var i = 0; i < words.length; i++) {
+        let words = text.match(/([A-Z]?[^A-Z]*)/g).slice(0, -1);
+        let mergedWords = [];
+        let mergedWord = '';
+        for (let i = 0; i < words.length; i++) {
             if (words[i].length == 1) {
                 mergedWord += words[i];
                 if (i == words.length - 1) {
@@ -2085,16 +2148,16 @@ class IDSParam extends HTMLElement {
             console.log('bounds', this.idsElement)
         }
         else if (this.filter == "dataType") {
-            console.log('dateType',this.idsElement.parentElement.parentElement)
-                if(this.textContent =="none" || this.textContent =="None" ){
-                    console.log('dateType none',this.idsElement.parentElement.parentElement)
-                    this.idsElement.parentElement.parentElement.removeAttribute('dataType')
-                    const specs = this.closest('ids-specs')
-                    specs.render()
+            console.log('dateType', this.idsElement.parentElement.parentElement)
+            if (this.textContent == "none" || this.textContent == "None") {
+                console.log('dateType none', this.idsElement.parentElement.parentElement)
+                this.idsElement.parentElement.parentElement.removeAttribute('dataType')
+                const specs = this.closest('ids-specs')
+                specs.render()
 
-                }else{
-                    this.idsElement.parentElement.parentElement.setAttribute('dataType',this.textContent)
-                }
+            } else {
+                this.idsElement.parentElement.parentElement.setAttribute('dataType', this.textContent)
+            }
         }
         else {
             console.log(this.idsElement)
@@ -2121,9 +2184,7 @@ class IDSSpecs extends HTMLElement {
     }
 
     render() {
-
         let template = this.getElementsByTagName('template')[0];
-
         let children = [];
         if (children.length == 1) {
             console.log("only template here")
@@ -2537,26 +2598,26 @@ class IDSAddOptionalType extends HTMLElement {
 
     handleItemClick(value) {
         // Handle the item click event
-        console.log('value',value)
+        console.log('value', value)
         const container = this.closest('ids-container');
         const specs = this.closest('ids-specs');
         const facet = this.closest('ids-facet');
         let idsElement = facet.idsElement;
         let type = container.ids.createElementNS(ns, value);
-            let simpleValue = container.ids.createElementNS(ns, 'simpleValue');
-            simpleValue.textContent = "enter type";
-            type.appendChild(simpleValue);
-        if(value =="dataType"){
-            idsElement.setAttribute('dataType',"Enter DataType")
-        }else if(idsElement.tagName =='partOf'){
+        let simpleValue = container.ids.createElementNS(ns, 'simpleValue');
+        simpleValue.textContent = "enter type";
+        type.appendChild(simpleValue);
+        if (value == "dataType") {
+            idsElement.setAttribute('dataType', "Enter DataType")
+        } else if (idsElement.tagName == 'partOf') {
             let entity = idsElement.getElementsByTagName('entity')[0]
             entity.appendChild(type)
         }
-        else{
+        else {
             idsElement.appendChild(type);
             facet.idsElement = idsElement;
         }
-        
+
         specs.render();
 
         this.hideDropdown();
