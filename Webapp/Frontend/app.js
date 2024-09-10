@@ -1611,7 +1611,7 @@ class IDSFacet extends HTMLElement {
             names.forEach(([name, name_param]) => {
                 predefinedTypes.forEach(([predefinedType, predefinedType_param]) => {
                     templates.push(
-                        `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}} data`
+                        `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}}`
                     );
                 });
             });
@@ -1619,7 +1619,7 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} data.` + `
+                    `Entities where IFC Class must be<ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["predefinedType"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1630,7 +1630,7 @@ class IDSFacet extends HTMLElement {
             names.forEach(([name, name_param]) => {
                 predefinedTypes.forEach(([predefinedType, predefinedType_param]) => {
                     templates.push(
-                        `Entities where IFC Class <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}} data`
+                        `Entities where IFC Class must be<ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="predefinedType" defaultoption="${predefinedType}"></ids-facet-dropdown>{${predefinedType_param}} data`
                     );
                 });
             });
