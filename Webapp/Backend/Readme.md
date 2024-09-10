@@ -5,18 +5,18 @@ Follow these steps to set up and start the FastAPI backend:
 
 ### 1. Set Up the Environment
 ```bash
-python -m venv env
+python -m venv .venv
 ```
 
 ### 2. Activate the Virtual Environment
 On Windows:
 ```bash
-.\env\Scripts\activate
+.\.venv\Scripts\activate
 ```
 
 On macOS/Linux:
 ```bash
-source env/bin/activate
+source .venv/bin/activate
 ```
 
 ### 3. Install the Required Dependencies

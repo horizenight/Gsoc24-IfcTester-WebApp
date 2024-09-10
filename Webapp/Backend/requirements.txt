@@ -2,3 +2,4 @@ fastapi
 uvicorn
 ifcopenshell
 ifctester
+python-multipart
