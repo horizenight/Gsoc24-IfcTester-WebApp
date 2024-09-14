@@ -5,7 +5,7 @@ feather.replace()
 let ns = 'http://standards.buildingsmart.org/IDS';
 let xs = 'http://www.w3.org/2001/XMLSchema';
 
-let BACKEND_URL='https://gsoc24-ifctester-webapp.onrender.com/'
+let BACKEND_URL='https://gsoc24-ifctester-webapp.onrender.com'
 
 class IDSNew extends HTMLElement {
     connectedCallback() {
