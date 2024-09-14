@@ -5,6 +5,8 @@ feather.replace()
 let ns = 'http://standards.buildingsmart.org/IDS';
 let xs = 'http://www.w3.org/2001/XMLSchema';
 
+let BACKEND_URL='https://gsoc24-ifctester-webapp.onrender.com/'
+
 class IDSNew extends HTMLElement {
     connectedCallback() {
         this.addEventListener('click', this.click.bind(this));
@@ -2345,7 +2347,7 @@ class IDSLibLoader extends HTMLElement {
         let formData = new FormData();
         formData.append('ids_file', file);
         try {
-            let response = await fetch('http://127.0.0.1:8000/api/ids/loadIds', {
+            let response = await fetch(`${BACKEND_URL}/api/ids/loadIds`, {
                 method: 'POST',
                 body: formData
             });
@@ -2414,7 +2416,7 @@ class IDSLoader extends HTMLElement {
         formData.append('ids_file', file);
 
         try {
-            let response = await fetch('http://127.0.0.1:8000/api/ids/loadIds', {
+            let response = await fetch(`${BACKEND_URL}/api/ids/loadIds`, {
                 method: 'POST',
                 body: formData
             });
@@ -2504,7 +2506,7 @@ class IDSAudit extends HTMLElement {
                 self.processResponse(request);
             }
         };
-        request.open("POST", "http://127.0.0.1:8000/api/ids/auditIds");
+        request.open("POST", `${BACKEND_URL}/apiids/auditIds`);
 
         let data = new FormData();
         data.append('ifc_file', inputElement.files[0]);
