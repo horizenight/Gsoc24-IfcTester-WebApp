@@ -5,7 +5,8 @@ feather.replace()
 let ns = 'http://standards.buildingsmart.org/IDS';
 let xs = 'http://www.w3.org/2001/XMLSchema';
 
-let BACKEND_URL='https://gsoc24-ifctester-webapp.onrender.com'
+// let BACKEND_URL='https://gsoc24-ifctester-webapp.onrender.com'
+let BACKEND_URL='http://127.0.0.1:8000'
 
 class IDSNew extends HTMLElement {
     connectedCallback() {
@@ -174,20 +175,14 @@ class IDSSpecRemove extends HTMLElement {
             console.log('Container.ids:', container.ids);
 
             let specifications = container.ids.getElementsByTagNameNS(ns, 'specifications')[0];
-            console.log('Specifications:', specifications);
 
             let containerIDS = container.ids.getElementsByTagNameNS(ns, 'ids')[0];
             if (containerIDS && specifications) {
                 containerIDS.removeChild(specifications);
-                console.log('containerIDS', containerIDS)
                 let xmlSerializer = new XMLSerializer();
                 let containerIDSString = xmlSerializer.serializeToString(containerIDS);
-
-                // Prepend the XML declaration
                 let xmlString = containerIDSString;
                 console.log(xmlString);
-
-                // Parse the XML string back into an XML document
                 let parser = new DOMParser();
                 container.ids = parser.parseFromString(xmlString, "application/xml");
 
@@ -198,7 +193,6 @@ class IDSSpecRemove extends HTMLElement {
             let template = container.getElementsByTagName('template')[0];
             let idsSpec = container.getElementsByTagName('ids-specs')[0];
             if (idsSpec && template) {
-                // Construct the new HTML for idsSpec
                 let newHtml = `
                 <ids-specs>
                     <div class="divider">
@@ -208,19 +202,108 @@ class IDSSpecRemove extends HTMLElement {
                             </ids-spec-add>
                         </span>
                     </div>
-                    <template/>
+                     <template>
+                                    <ids-spec>
+                                        <ids-spec-target></ids-spec-target>
+                                        <h2>
+                                            <a href="#"><i data-feather="play"></i></a>
+                                            <ids-spec-handle class="draggable" draggable="true">
+                                                <i data-feather="move"></i>
+                                                <div class="snippet hidden">Move specification</div>
+                                            </ids-spec-handle>
+                                            <ids-spec-remove>
+                                                <i data-feather="x"></i>
+                                            </ids-spec-remove>
+                                            <ids-spec-attribute name="name">Requirement name</ids-spec-attribute>
+                                        </h2>
+                                        <div class="spec-contents">
+                                            <p class="spec-description">
+                                                <ids-spec-attribute name="description">
+                                                    Describe why the requirement is important to the project.
+                                                </ids-spec-attribute>
+                                            </p>
+                                            <p>
+                                                <ids-spec-attribute name="instructions">
+                                                    Provide instructions on who is responsible and how to achieve it.
+                                                </ids-spec-attribute>
+                                            </p>
+                                            <h3>
+                                                <span class="controls">
+                                                    <ids-facet-add>
+                                                        <i data-feather="plus"></i>
+                                                    </ids-facet-add>
+                                                </span>
+                                                Applies to:
+                                            </h3>
+                                            <ids-facets name="applicability">
+                                                <template>
+                                                    <div class="facet">
+                                                        <span class="facet-controls">
+                                                            <ids-facet-remove>
+                                                                <i data-feather="x"></i>
+                                                            </ids-facet-remove>
+                                                        </span>
+                                                        <ids-facet type="applicability"></ids-facet>
+                                                    </div>
+                                                </template>
+                                            </ids-facets>
+                                            <h3>
+                                                <span class="controls">
+                                                    <ids-facet-add>
+                                                        <i data-feather="plus"></i>
+                                                    </ids-facet-add>
+                                                </span>
+                                                Requirements:
+                                            </h3>
+                                            <ids-facets name="requirements">
+                                                <template>
+                                                    <div class="facet">
+                                                        <span class="facet-controls">
+                                                            <ids-facet-remove>
+                                                                <i data-feather="x"></i>
+                                                            </ids-facet-remove>
+                                                        </span>
+                                                        <ids-result name="fail" class="result-icon hidden">
+                                                            <i data-feather="x"></i>
+                                                            <span>32</span>
+                                                        </ids-result>
+                                                        <ids-result name="pass" class="result-icon hidden">
+                                                            <i data-feather="check"></i>
+                                                        </ids-result>
+                                                        <ids-facet type="requirement"></ids-facet>
+                                                        <ids-facet-instructions class="requirement-instructions" title="Instructions">
+                                                            Optionally write instructions about how to achieve this requirement.
+                                                        </ids-facet-instructions>
+                                                    </div>
+                                                </template>
+                                            </ids-facets>
+                                        </div>
+                                        <div class="divider">
+                                            <span class="placeholder">
+                                                <i data-feather="align-justify"></i>
+                                            </span>
+                                            <span class="controls">
+                                                <ids-spec-add>
+                                                    <i data-feather="plus"></i>
+                                                </ids-spec-add>
+                                                <ids-spec-move direction="down">
+                                                    <i data-feather="chevron-down"></i>
+                                                </ids-spec-move>
+                                                <ids-spec-move direction="up">
+                                                <i data-feather="chevron-up"></i>
+                                                </ids-spec-move>
+                                            </span>
+                                        </div>
+                                    </ids-spec>
+                                </template>
                     </ids-specs>
                 `;
-
-                // Set the outerHTML of idsSpec
                 idsSpec.outerHTML = newHtml;
-
-                ;
             } else {
                 console.error('IDs Spec or Template not found.');
             }
-
-            // Assuming this.loadSpecs is a method of your class
+            console.log('final',container)
+            console.log('final2',container.ids)
             this.loadSpecs(container);
         }
 
@@ -286,25 +369,16 @@ class IDSSpecAdd extends HTMLElement {
         newSpec.appendChild(newRequirements);
 
         if (specs.children.length == 2 && !spec) {
-            //here we should modify the container 
+            console.log('no spec')
             let idsElement = container.ids.querySelector('ids');
             let specifications = container.ids.createElementNS(ns, "specifications");
             specifications.appendChild(newSpec)
             idsElement.appendChild(specifications);
-            this.loadSpecs(container)
+            specs.load(container.ids.getElementsByTagNameNS(ns, 'specifications')[0])
         } else {
+            console.log(specs.idsElement)
             specs.idsElement.insertBefore(newSpec, spec.idsElement.nextElementSibling);
             specs.idsElement.dispatchEvent(new Event('ids-spec-add', { bubbles: true }));
-        }
-    }
-
-    loadSpecs(container) {
-        console.log('logSpecs', container.ids)
-        container.getElementsByTagName('ids-info')[0].load(container.ids.getElementsByTagNameNS(ns, 'info')[0]);
-        let specsElements = container.getElementsByTagName('ids-specs');
-        for (let i = 0; i < specsElements.length; i++) {
-            let specs = specsElements[i];
-            specs.load(container.ids.getElementsByTagNameNS(ns, 'specifications')[0]);
         }
     }
 }
@@ -2457,15 +2531,38 @@ class IDSLoader extends HTMLElement {
     }
 }
 
+//TODO: Currently the creation of IDSSpecs is missing some value that fails the validation
 class IDSSave extends HTMLElement {
     connectedCallback() {
-        this.addEventListener('click', this.click);
+        this.addEventListener('click', this.click.bind(this));
     }
 
-    click() {
-        let container = this.closest('ids-container')
-        let xmlString = new XMLSerializer().serializeToString(container.ids);
+    async click() {
+        let container = this.closest('ids-container');
+      
+        let ids = container.ids; 
+        let idsString = new XMLSerializer().serializeToString(container.ids);
+        let xmlString = await this.validateAndGetXml(idsString)
+       
         this.download(container.filename, xmlString);
+    }
+
+    async validateAndGetXml(ids) { 
+            let container = this.closest('ids-container'); 
+            let alertElement = container.querySelector('ids-alert');      
+            const file = new File([ids], 'file.ids');
+            console.log('file',file)
+            const formData = new FormData();
+            formData.append('ids_file', file, 'file.ids');
+            console.log('ids',ids)
+            const response = await fetch(`${BACKEND_URL}/api/ids/loadIds`, {
+                method: 'POST',
+                body: formData
+            });
+           
+            let result = await response.json();
+            console.log('result',result)
+            alertElement.showAlert(`work in progress ${result.detail}`, 'error');
     }
 
     download(filename, text) {
