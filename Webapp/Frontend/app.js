@@ -1665,7 +1665,7 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
+                    `Any entity with attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1676,7 +1676,7 @@ class IDSFacet extends HTMLElement {
             names.forEach(([name, name_param]) => {
                 valuesInfo.forEach(([value, value_param]) => {
                     templates.push(
-                        `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        `Any entity with Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
                     );
                 });
             });
@@ -1685,7 +1685,7 @@ class IDSFacet extends HTMLElement {
             templates = []
             names.forEach(([name, name_param]) => {
                 templates.push(
-                    `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
+                    `The entity must have Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                     <span class="facet-control">
                     <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                     </span>
@@ -1696,7 +1696,7 @@ class IDSFacet extends HTMLElement {
             names.forEach(([name, name_param]) => {
                 valuesInfo.forEach(([value, value_param]) => {
                     templates.push(
-                        `Entities having Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        `The entity must have Attribute Name that <ids-facet-dropdown target="name" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and predefined type <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
                     );
                 });
             });
@@ -1748,7 +1748,7 @@ class IDSFacet extends HTMLElement {
             systemInfo.forEach(([system, system_param]) => {
                 valueInfo.forEach(([value, value_param]) => {
                     templates.push(
-                        `Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        `Any entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}} and a classification reference starting with value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
                     );
                 });
             });
@@ -1764,7 +1764,7 @@ class IDSFacet extends HTMLElement {
             systemInfo.forEach(([system, system_param]) => {
                 valueInfo.forEach(([value, value_param]) => {
                     templates.push(
-                        `The entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}} and a classification reference starting with that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                        `The entity classified using system that <ids-facet-dropdown target="system" defaultoption="${system}"></ids-facet-dropdown>{${system_param}} and a classification reference starting with value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
                     );
                 });
             });
@@ -1815,7 +1815,7 @@ class IDSFacet extends HTMLElement {
                     propertyValues.forEach(([value, value_param]) => {
                         // both absent
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
+                            `Any Entity having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}` + `
                             <span class="facet-control">
                             <ids-add-optional-type optional-types='["dataType","value"]'><i data-feather="plus"></i><ids-add-optional-type>
                             </span>
@@ -1823,7 +1823,7 @@ class IDSFacet extends HTMLElement {
                         );
                         // dataType Present Value not
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}` + `
+                            `Any Entity having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}` + `
                             <span class="facet-control">
                             <ids-add-optional-type optional-types='["value"]'><i data-feather="plus"></i><ids-add-optional-type>
                             </span>
@@ -1831,7 +1831,7 @@ class IDSFacet extends HTMLElement {
                         );
                         //dataType not present value present
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}` + `
+                            `Any Entity having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}` + `
                             <span class="facet-control">
                             <ids-add-optional-type optional-types='["dataType"]'><i data-feather="plus"></i><ids-add-optional-type>
                             </span>
@@ -1839,7 +1839,7 @@ class IDSFacet extends HTMLElement {
                         );
 
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                            `Any Entity having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
                         );
                     });
                 });
@@ -1852,19 +1852,19 @@ class IDSFacet extends HTMLElement {
                     propertyValues.forEach(([value, value_param]) => {
                         // both absent
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
+                            `The entity must have property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}}`
                         );
                         // dataType Present Value not
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}`
+                            `The entity must have property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType}`
                         );
                         //dataType not present value present
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                            `The entity must have property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
                         );
 
                         templates.push(
-                            `Entities having property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
+                            `The entity must have property set that <ids-facet-dropdown target="pset" defaultoption="${pset}"></ids-facet-dropdown> {${pset_param}} and property Name that <ids-facet-dropdown target="baseName" defaultoption="${name}"></ids-facet-dropdown>{${name_param}} and with the IFC data type {dataType} and property value that <ids-facet-dropdown target="value" defaultoption="${value}"></ids-facet-dropdown>{${value_param}}`
                         );
                     });
                 });
@@ -1904,15 +1904,15 @@ class IDSFacet extends HTMLElement {
                 </span>
                 `,
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown> {type} data',
+                'Any entity having material that <ids-facet-dropdown target="value" defaultoption="type"></ids-facet-dropdown> {type} data',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either {typeEnumeration}',
+                'Any entity having material that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either {typeEnumeration}',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+                'Any entity having material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+                'Any entity having material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="length"></ids-facet-dropdown>  {length}',
+                'Any entity having material that <ids-facet-dropdown target="value" defaultoption="length"></ids-facet-dropdown>  {length}',
 
             ];
         } else if (this.type == 'requirement') {
@@ -1923,15 +1923,15 @@ class IDSFacet extends HTMLElement {
                 </span>
                 `,
 
-                'Entities having Material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
+                'The entity must have material that <ids-facet-dropdown target="value"></ids-facet-dropdown> {type} data',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either {typeEnumeration}',
+                'The entity must have material that <ids-facet-dropdown target="value" defaultoption="typeEnumeration"></ids-facet-dropdown> either {typeEnumeration}',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
+                'The entity must have material that <ids-facet-dropdown target="value" defaultoption="matchesPattern"></ids-facet-dropdown> {pattern}',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
+                'The entity must have material that <ids-facet-dropdown target="value" defaultoption="bounds"></ids-facet-dropdown>  {bounds}',
 
-                'Entities having Material that <ids-facet-dropdown target="value" defaultoption="length"></ids-facet-dropdown>  {length}',
+                'The entity must have material that <ids-facet-dropdown target="value" defaultoption="length"></ids-facet-dropdown>  {length}',
 
             ];
         }
